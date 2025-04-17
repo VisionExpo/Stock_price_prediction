@@ -8,8 +8,13 @@ from src.data_retrieval import retrieve_data
 from src.data_preprocessing import preprocess_data, create_dataset
 from src.model import create_model, train_model
 from src.predict import predict_future
-from src.utils import ModelTracker, plot_metrics_history
+from src.utils import ModelTracker, plot_metrics_history, check_system_health, get_cached_stock_data
 import tensorflow as tf
+
+# Health check query parameter handler
+if "health" in st.experimental_get_query_params():
+    st.json(check_system_health())
+    st.stop()
 
 # Page configuration
 st.set_page_config(
@@ -85,7 +90,8 @@ if ticker:
             # Historical data view
             st.subheader(f"Historical Data for {ticker}")
             with st.spinner("Fetching data..."):
-                df = retrieve_data(ticker, days=days_of_history)
+                # Use cached data retrieval
+                df = get_cached_stock_data(ticker, days=days_of_history)
                 
             # Plot historical prices
             fig = plt.figure(figsize=(12, 6))
