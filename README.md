@@ -18,79 +18,36 @@ This project implements a stock price prediction model using Long Short-Term Mem
 
 ```
 ├── src/                # Source code directory
-│   ├── __init__.py     # Makes src a Python package
-│   ├── config.py       # Configuration parameters
-│   ├── data_loader.py  # Data loading and preprocessing
-│   ├── model.py        # LSTM model definition
-│   ├── utils.py        # Utility functions
-│   ├── train.py        # Training script
-│   ├── evaluate.py     # Evaluation script
-│   ├── predict.py      # Prediction script
-│   └── main.py         # Main pipeline script
-├── model_metrics/      # Saved model metrics and history
-├── models/             # Saved model files
+│   ├── data_preprocessing.py  # Data preprocessing utilities
+│   ├── data_retrieval.py     # Stock data fetching
+│   ├── model.py             # LSTM model architecture
+│   ├── predict.py          # Prediction functions
+│   └── utils.py           # Helper utilities
+├── tests/              # Unit tests
+├── model_metrics/      # Saved model metrics
 ├── docs/              # Documentation and images
-├── app.py             # Streamlit web application
-└── requirements.txt   # Required packages
+├── research/          # Jupyter notebooks
+├── app.py            # Streamlit web application
+└── requirements.txt  # Required packages
 ```
 
 ## Model Architecture
 
 The LSTM model architecture consists of:
-- 3 LSTM layers with customizable units (default: 100)
-- Dropout layers for regularization (customizable rate)
+- Multiple LSTM layers with configurable units (32-256)
+- Dropout layers for regularization (0.0-0.5)
+- Batch normalization for training stability
 - Dense output layer for price prediction
-- Adam optimizer with configurable learning rate
 
 ![Model Architecture](docs/images/architecture.png)
 
-## Performance Metrics
+## Setup and Installation
 
-The model tracks several key performance metrics:
-- Mean Squared Error (MSE)
-- Root Mean Squared Error (RMSE)
-- Mean Absolute Error (MAE)
-- R² Score (Coefficient of Determination)
-
-Example metrics visualization:
-![Metrics History](docs/images/metrics.png)
-
-## Prediction Visualization
-
-The model provides various visualizations:
-1. Historical vs Predicted Prices
-   ![Price Prediction](docs/images/prediction.png)
-
-2. Training History
-   ![Training History](docs/images/training.png)
-
-3. Prediction Confidence Intervals
-   ![Confidence Intervals](docs/images/confidence.png)
-
-## Requirements
-
-- Python 3.6+
-- TensorFlow 2.x
-- pandas
-- numpy
-- matplotlib
-- scikit-learn
-- streamlit
-- yfinance
-
-## Setup
-
-1. Clone the repository:
-```bash
-git clone https://github.com/yourusername/stock-price-prediction.git
-cd stock-price-prediction
-```
-
-2. Install required packages:
+1. Clone the repository
+2. Install dependencies:
 ```bash
 pip install -r requirements.txt
 ```
-
 3. Launch the web application:
 ```bash
 streamlit run app.py
@@ -107,7 +64,7 @@ streamlit run app.py
 
 2. **Train Model**
    - Configure basic parameters:
-     - Epochs
+     - Number of epochs
      - Batch size
      - Look-back period
    - Set advanced parameters:
@@ -123,49 +80,49 @@ streamlit run app.py
    - Download prediction results
 
 4. **Track Performance**
-   - View historical metrics
+   - Monitor historical metrics
    - Compare model versions
    - Analyze performance trends
 
-### Configuration
-
-Customize model parameters in `src/config.py`:
-
-```python
-STOCK_SYMBOL = 'AAPL'        # Default stock symbol
-TRAIN_TEST_SPLIT = 0.8      # Training data ratio
-LSTM_UNITS = 100           # LSTM layer units
-DROPOUT_RATE = 0.2        # Dropout rate
-EPOCHS = 100             # Training epochs
-BATCH_SIZE = 32         # Batch size
-LOOK_BACK = 60         # Time steps to look back
-LEARNING_RATE = 0.001 # Adam optimizer learning rate
-```
+![Training History](docs/images/training.png)
 
 ## Model Performance
 
-Example performance metrics on various stocks:
+The model's performance varies based on the stock and configuration. Here are typical metrics achieved with default settings:
 
-| Stock | MSE    | RMSE   | MAE    | R² Score |
-|-------|---------|--------|--------|----------|
-| AAPL  | 12.45   | 3.52   | 2.89   | 0.95     |
-| GOOGL | 15.67   | 3.96   | 3.12   | 0.93     |
-| MSFT  | 10.23   | 3.19   | 2.54   | 0.96     |
+| Metric | Value |
+|--------|-------|
+| MSE    | 10-15 |
+| RMSE   | 3-4   |
+| MAE    | 2-3   |
+| R²     | 0.90+ |
+
+![Metrics History](docs/images/metrics.png)
+
+### Prediction Example
+
+Below is an example of price predictions with confidence intervals:
+
+![Prediction Example](docs/images/prediction.png)
+
+## Deployment
+
+This application can be deployed on Render.com. See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed instructions.
 
 ## Contributing
 
 1. Fork the repository
-2. Create your feature branch
-3. Commit your changes
+2. Create a feature branch
+3. Commit changes
 4. Push to the branch
-5. Create a new Pull Request
+5. Open a pull request
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the MIT License.
 
 ## Acknowledgments
 
-- TensorFlow team for the excellent deep learning framework
-- Streamlit team for the amazing web app framework
+- TensorFlow team for the deep learning framework
+- Streamlit team for the web app framework
 - yfinance for providing stock data access
