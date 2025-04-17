@@ -3,7 +3,9 @@ import json
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-from datetime import datetime
+from datetime import datetime, timedelta
+from functools import lru_cache
+import psutil
 
 class ModelTracker:
     def __init__(self):
@@ -87,3 +89,59 @@ def plot_metrics_history(metrics_list):
     
     plt.tight_layout()
     return fig
+
+def check_system_health():
+    """Check system health metrics"""
+    try:
+        health_metrics = {
+            'status': 'healthy',
+            'memory_usage': psutil.Process().memory_percent(),
+            'cpu_usage': psutil.Process().cpu_percent(),
+            'disk_usage': psutil.disk_usage('/').percent,
+            'model_available': os.path.exists('stock_model.h5'),
+            'cache_status': 'active',
+            'timestamp': datetime.now().isoformat()
+        }
+        
+        # Check if memory usage is too high
+        if health_metrics['memory_usage'] > 90:
+            health_metrics['status'] = 'warning'
+            health_metrics['warning'] = 'High memory usage'
+            
+        # Check if disk space is low
+        if health_metrics['disk_usage'] > 90:
+            health_metrics['status'] = 'warning'
+            health_metrics['warning'] = 'Low disk space'
+            
+        return health_metrics
+    except Exception as e:
+        return {
+            'status': 'error',
+            'error': str(e),
+            'timestamp': datetime.now().isoformat()
+        }
+
+@lru_cache(maxsize=100)
+def get_cached_stock_data(ticker: str, days: int) -> pd.DataFrame:
+    """Get stock data with caching"""
+    cache_file = f'cache/{ticker}_{days}.csv'
+    
+    # Create cache directory if it doesn't exist
+    os.makedirs('cache', exist_ok=True)
+    
+    # Check if cached data exists and is recent
+    if os.path.exists(cache_file):
+        cached_data = pd.read_csv(cache_file, index_col=0, parse_dates=True)
+        cache_age = datetime.now() - datetime.fromtimestamp(os.path.getmtime(cache_file))
+        
+        # Return cached data if it's less than 1 hour old
+        if cache_age < timedelta(hours=1):
+            return cached_data
+    
+    # Fetch new data if cache is missing or old
+    from data_retrieval import retrieve_data
+    df = retrieve_data(ticker, days)
+    
+    # Save to cache
+    df.to_csv(cache_file)
+    return df

@@ -1,10 +1,22 @@
 services:
-  # A web service
   - type: web
     name: stock-price-prediction
     env: python
-    buildCommand: pip install -r requirements.txt
+    region: oregon
+    plan: free
+    buildCommand: |
+      apt-get update -y && \
+      apt-get install -y graphviz build-essential && \
+      pip install -r requirements.txt
     startCommand: streamlit run app.py --server.port=$PORT --server.address=0.0.0.0
     envVars:
       - key: PYTHON_VERSION
         value: 3.9.0
+      - key: PYTHONUNBUFFERED
+        value: "true"
+    healthCheckPath: /
+    autoDeploy: true
+    disk:
+      name: cache
+      mountPath: /cache
+      sizeGB: 1

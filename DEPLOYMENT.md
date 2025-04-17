@@ -6,6 +6,15 @@ This guide explains how to deploy the Stock Price Prediction application to Rend
 
 - A [Render](https://render.com/) account
 - Git repository with your project
+- Python 3.9+ environment
+
+## System Requirements
+
+The application requires certain system packages to be installed on the deployment server:
+- graphviz (for model architecture visualization)
+- build-essential (for compiling some Python packages)
+
+These will be installed automatically through the build script.
 
 ## Deployment Steps
 
@@ -16,15 +25,22 @@ This guide explains how to deploy the Stock Price Prediction application to Rend
 3. Connect your Git repository
 4. Configure the service:
    - Name: `stock-price-prediction` (or any name you prefer)
-   - Environment: `Python`
-   - Build Command: `pip install -r requirements.txt`
+   - Environment: `Python 3.9`
+   - Build Command: 
+     ```
+     apt-get update -y && \
+     apt-get install -y graphviz build-essential && \
+     pip install -r requirements.txt
+     ```
    - Start Command: `streamlit run app.py --server.port=$PORT --server.address=0.0.0.0`
-5. Select the appropriate plan (Free tier works for testing)
+   - Plan: Free (Starter) or Standard based on your needs
+5. Environment Variables:
+   - No additional environment variables required
 6. Click "Create Web Service"
 
 ### Option 2: Deploy using render.yaml
 
-1. Make sure the `render.yaml` file is in your repository
+1. Ensure the `render.yaml` file is in your repository (it's already configured)
 2. Log in to your Render account
 3. Go to the "Blueprints" section
 4. Click on "New Blueprint Instance"
@@ -32,37 +48,81 @@ This guide explains how to deploy the Stock Price Prediction application to Rend
 6. Render will automatically detect the `render.yaml` file and configure the services
 7. Click "Apply" to deploy
 
-## Environment Variables
+## Resource Requirements
 
-If you're using the Tiingo API, you'll need to set the `TIINGO_API_KEY` environment variable in your Render service:
+- Memory: Minimum 1GB RAM (2GB recommended)
+- CPU: At least 1 vCPU
+- Storage: Minimum 512MB free space
 
-1. Go to your web service in the Render dashboard
-2. Click on "Environment"
-3. Add the environment variable:
-   - Key: `TIINGO_API_KEY`
-   - Value: Your Tiingo API key
-4. Click "Save Changes"
+The free tier of Render should be sufficient for testing and light usage. For production use with multiple users, consider upgrading to the Standard plan.
 
-## Accessing Your Deployed App
+## Performance Optimization
 
-Once deployed, you can access your app at the URL provided by Render, which will look something like:
-`https://stock-price-prediction-xxxx.onrender.com`
+The application includes several optimizations for deployment:
+1. Caching of stock data to reduce API calls
+2. Batch prediction to minimize memory usage
+3. Model compression for faster loading
+
+## Monitoring and Maintenance
+
+1. Monitor your application through the Render dashboard:
+   - Check CPU and memory usage
+   - Review application logs
+   - Monitor response times
+
+2. Regular maintenance tasks:
+   - Update dependencies monthly
+   - Review and clean cached data
+   - Monitor model performance metrics
 
 ## Troubleshooting
 
-If you encounter any issues:
+If you encounter issues:
 
-1. Check the logs in the Render dashboard
-2. Make sure all dependencies are correctly listed in `requirements.txt`
-3. Verify that the start command is correct
-4. Ensure all necessary environment variables are set
+1. Check application logs in the Render dashboard
+2. Common issues and solutions:
+   - Memory errors: Increase the memory allocation
+   - Timeout errors: Adjust the request timeout settings
+   - Model loading issues: Clear the service cache
+   - Stock data errors: Check yfinance API status
 
 ## Local Testing
 
-Before deploying, you can test the app locally:
+Before deploying, test the app locally:
 
-```
+```bash
+# Set up virtual environment
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Run the application
 streamlit run app.py
 ```
 
-This will start the app on `http://localhost:8501`
+The app will be available at `http://localhost:8501`
+
+## Health Check
+
+The application automatically performs health checks on:
+- Model availability
+- Data API connectivity
+- Memory usage
+- Cache status
+
+## Security Considerations
+
+1. The application uses HTTPS by default on Render
+2. Stock data is fetched through secure API calls
+3. User inputs are sanitized to prevent injection attacks
+4. No sensitive credentials are required
+
+## Scaling
+
+To handle more users:
+1. Upgrade to Render's Standard plan
+2. Increase the memory allocation
+3. Enable auto-scaling if needed
+4. Consider implementing request queuing for heavy workloads
