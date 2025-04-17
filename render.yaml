@@ -8,15 +8,27 @@ services:
       apt-get update -y && \
       apt-get install -y graphviz build-essential && \
       pip install -r requirements.txt
-    startCommand: streamlit run app.py --server.port=$PORT --server.address=0.0.0.0
+    startCommand: streamlit run app.py --server.port=$PORT --server.address=0.0.0.0 --server.maxUploadSize=50 --server.maxMessageSize=50
     envVars:
       - key: PYTHON_VERSION
-        value: 3.9.0
+        value: 3.9.18
       - key: PYTHONUNBUFFERED
         value: "true"
-    healthCheckPath: /
+      - key: STREAMLIT_SERVER_ENABLE_CORS
+        value: "true"
+      - key: STREAMLIT_SERVER_HEADLESS
+        value: "true"
+    healthCheckPath: /_stcore/health
     autoDeploy: true
     disk:
       name: cache
       mountPath: /cache
       sizeGB: 1
+    initialDeployHook: |
+      mkdir -p /cache/model_metrics
+      mkdir -p /cache/cache
+    scaling:
+      minInstances: 1
+      maxInstances: 1
+      targetMemoryPercent: 80
+    startupTimeout: 300
