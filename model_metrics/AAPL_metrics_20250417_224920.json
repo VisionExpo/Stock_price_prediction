@@ -1,0 +1,16 @@
+{
+    "timestamp": "20250417_224920",
+    "stock_symbol": "AAPL",
+    "metrics": {
+        "MSE": 1430.9681741939416,
+        "RMSE": 37.828139977983874,
+        "MAE": 34.55991649627685,
+        "R2 Score": -5.047532917037461
+    },
+    "parameters": {
+        "lstm_units": 50,
+        "learning_rate": 0.01,
+        "epochs": 5,
+        "batch_size": 32
+    }
+}
