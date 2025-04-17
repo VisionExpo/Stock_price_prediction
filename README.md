@@ -1,6 +1,6 @@
 # Stock Price Prediction Using LSTM
 
-This project implements a stock price prediction model using Long Short-Term Memory (LSTM) neural networks. The model is designed to predict future stock prices based on historical data.
+This project implements a stock price prediction model using Long Short-Term Memory (LSTM) neural networks. The model is designed to predict future stock prices based on historical data. It includes both a command-line interface and a web application built with Streamlit for easy interaction.
 
 ## Project Structure
 
@@ -14,12 +14,17 @@ This project implements a stock price prediction model using Long Short-Term Mem
 │   ├── train.py        # Training script
 │   ├── evaluate.py     # Evaluation script
 │   ├── predict.py      # Prediction script
-│   └── main.py         # Main pipeline script
+│   ├── main.py         # Main pipeline script
+│   └── app.py          # Streamlit web application
 ├── data/               # Directory for stock data
 ├── models/             # Directory for saved models
 ├── results/            # Directory for results and plots
-├── run.py              # Entry point script
+├── run.py              # CLI entry point script
+├── app.py              # Streamlit app entry point
 ├── requirements.txt    # Required packages
+├── Procfile            # For deployment on Render
+├── render.yaml         # Configuration for Render deployment
+├── DEPLOYMENT.md       # Deployment instructions
 ├── .env                # Environment variables (API keys)
 └── .gitignore          # Git ignore file
 ```
@@ -32,8 +37,10 @@ This project implements a stock price prediction model using Long Short-Term Mem
 - numpy
 - matplotlib
 - scikit-learn
-- pandas-datareader
 - python-dotenv
+- streamlit
+- yfinance
+- Pillow
 
 ## Setup
 
@@ -100,6 +107,30 @@ You can modify the default parameters in `src/config.py`:
 - `LOOK_BACK`: Number of previous time steps to use as input (default: 60)
 - `LEARNING_RATE`: Learning rate (default: 0.001)
 - `VALIDATION_SPLIT`: Validation split ratio (default: 0.1)
+
+## Web Application
+
+The project includes a Streamlit web application that provides a user-friendly interface for training models and making predictions.
+
+To run the web application locally:
+
+```
+streamlit run app.py
+```
+
+This will start the app on `http://localhost:8501`
+
+### Web App Features
+
+- Train LSTM models with customizable parameters
+- Visualize training history and model performance
+- Make future stock price predictions
+- Interactive charts and data tables
+- Download prediction results
+
+## Deployment
+
+The application can be deployed to Render. See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed instructions.
 
 ## License
 
