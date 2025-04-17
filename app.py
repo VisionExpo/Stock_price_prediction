@@ -9,6 +9,7 @@ from src.data_preprocessing import preprocess_data, create_dataset
 from src.model import create_model, train_model
 from src.predict import predict_future
 from src.utils import ModelTracker, plot_metrics_history
+import tensorflow as tf
 
 # Page configuration
 st.set_page_config(
@@ -202,7 +203,10 @@ if ticker:
                         progress_text = "Training in progress. Please wait..."
                         progress_bar = st.progress(0)
                         
-                        class ProgressCallback:
+                        class ProgressCallback(tf.keras.callbacks.Callback):
+                            def __init__(self):
+                                super().__init__()
+                            
                             def on_epoch_end(self, epoch, logs=None):
                                 progress = (epoch + 1) / epochs
                                 progress_bar.progress(progress)
