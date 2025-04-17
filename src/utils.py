@@ -139,7 +139,7 @@ def get_cached_stock_data(ticker: str, days: int) -> pd.DataFrame:
             return cached_data
     
     # Fetch new data if cache is missing or old
-    from data_retrieval import retrieve_data
+    from src.data_retrieval import retrieve_data  # Fixed import path
     df = retrieve_data(ticker, days)
     
     # Save to cache
