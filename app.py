@@ -31,7 +31,7 @@ os.makedirs('model_metrics', exist_ok=True)
 
 try:
     # Health check query parameter handler
-    if "health" in st.experimental_get_query_params():
+    if "health" in st.query_params:
         health_status = check_system_health()
         logger.info(f"Health check status: {health_status}")
         st.json(health_status)
