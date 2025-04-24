@@ -20,14 +20,34 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
         logging.StreamHandler(sys.stdout),
-        logging.FileHandler('app.log')
+        logging.FileHandler(os.path.join(os.environ.get('CACHE_DIR', 'cache'), 'app.log'))
     ]
 )
 logger = logging.getLogger(__name__)
 
+# Log system information at startup
+logger.info("Starting Stock Price Prediction application")
+logger.info(f"Python version: {sys.version}")
+logger.info(f"Current working directory: {os.getcwd()}")
+try:
+    import psutil
+    logger.info(f"Available disk space: {psutil.disk_usage('/')}")
+    logger.info(f"Memory usage: {psutil.virtual_memory()}")
+except ImportError:
+    logger.warning("psutil not available, skipping system resource logging")
+
 # Create necessary directories
-os.makedirs('cache', exist_ok=True)
-os.makedirs('model_metrics', exist_ok=True)
+cache_dir = os.environ.get('CACHE_DIR', 'cache')
+model_metrics_dir = os.environ.get('MODEL_METRICS_DIR', 'model_metrics')
+os.makedirs(cache_dir, exist_ok=True)
+os.makedirs(model_metrics_dir, exist_ok=True)
+
+# Define model path
+model_path = os.path.join(cache_dir, 'stock_model.h5')
+
+logger.info(f"Using cache directory: {cache_dir}")
+logger.info(f"Using model metrics directory: {model_metrics_dir}")
+logger.info(f"Model will be saved to: {model_path}")
 
 try:
     # Health check query parameter handler
@@ -66,13 +86,13 @@ try:
     with st.expander("About this Project", expanded=True):
         st.markdown("""
         ### Stock Price Prediction using LSTM Neural Networks
-        
-        This application uses Long Short-Term Memory (LSTM) neural networks to predict future stock prices. 
+
+        This application uses Long Short-Term Memory (LSTM) neural networks to predict future stock prices.
         LSTMs are particularly well-suited for this task because they can:
         - Remember long-term patterns in time series data
         - Handle the non-linear nature of stock markets
         - Process sequential data effectively
-        
+
         #### Features:
         - 🔍 Historical data visualization
         - 📈 Interactive model training with customizable parameters
@@ -80,14 +100,14 @@ try:
         - 📊 Comprehensive performance metrics
         - 🎯 Future price predictions
         - 📉 Model performance tracking over time
-        
+
         #### How it works:
         1. Historical stock data is retrieved dynamically
         2. Data is preprocessed and normalized
         3. LSTM model is trained on the processed data
         4. Model predicts future stock prices
         5. Performance metrics are tracked and visualized
-        
+
         > Note: Stock price prediction is inherently uncertain. This tool should be used for educational purposes only.
         """)
 
@@ -100,7 +120,7 @@ try:
         ticker = st.text_input("Enter Stock Symbol (e.g., AAPL)", value="AAPL")
         days_of_history = st.slider("Days of Historical Data", 100, 1000, 365,
                                   help="Number of historical days to use for training")
-        action = st.radio("Choose Action", 
+        action = st.radio("Choose Action",
                          ["View Historical Data", "Train Model", "Make Predictions", "View Model Performance"],
                          help="Select what you want to do")
 
@@ -113,7 +133,7 @@ try:
                 with st.spinner("Fetching data..."):
                     # Use cached data retrieval
                     df = get_cached_stock_data(ticker, days=days_of_history)
-                    
+
                 # Plot historical prices
                 fig = plt.figure(figsize=(12, 6))
                 plt.plot(df.index, df.values, label='Stock Price')
@@ -124,13 +144,13 @@ try:
                 plt.grid(True)
                 plt.xticks(rotation=45)
                 st.pyplot(fig)
-                
+
                 # Display recent data and statistics
                 col1, col2 = st.columns([2, 1])
                 with col1:
                     st.subheader("Recent Data")
                     st.dataframe(df.tail())
-                
+
                 with col2:
                     st.subheader("Statistics")
                     stats = df.describe()
@@ -147,17 +167,17 @@ try:
 
             elif action == "Train Model":
                 st.subheader("Train New Model")
-                
+
                 # Model parameters in tabs
                 tab1, tab2, tab3 = st.tabs(["Basic Parameters", "Advanced Parameters", "Training Settings"])
-                
+
                 with tab1:
                     col1, col2 = st.columns(2)
                     with col1:
                         epochs = st.slider("Number of Epochs", 10, 200, 100,
                                         help="Number of training iterations")
-                        batch_size = st.select_slider("Batch Size", 
-                                                    options=[16, 32, 64, 128], 
+                        batch_size = st.select_slider("Batch Size",
+                                                    options=[16, 32, 64, 128],
                                                     value=32,
                                                     help="Number of samples per training batch")
                     with col2:
@@ -165,7 +185,7 @@ try:
                                             help="Number of previous days to use for prediction")
                         train_split = st.slider("Training Data Split", 0.5, 0.9, 0.8,
                                              help="Proportion of data to use for training")
-                
+
                 with tab2:
                     col1, col2 = st.columns(2)
                     with col1:
@@ -182,7 +202,7 @@ try:
                         )
                         validation_split = st.slider("Validation Split", 0.1, 0.3, 0.2,
                                                   help="Proportion of training data to use for validation")
-                
+
                 with tab3:
                     early_stopping = st.checkbox("Use Early Stopping", value=True,
                                               help="Stop training when validation loss stops improving")
@@ -207,17 +227,17 @@ try:
                                 "early_stopping": early_stopping,
                                 "patience": patience if early_stopping else None
                             }
-                            
+
                             # Prepare data
                             df = retrieve_data(ticker, days=days_of_history)
                             train_data, test_data, scaler = preprocess_data(df)
                             x_train, y_train = create_dataset(train_data, time_step=look_back)
                             x_test, y_test = create_dataset(test_data, time_step=look_back)
-                            
+
                             # Reshape for LSTM
                             x_train = x_train.reshape(x_train.shape[0], x_train.shape[1], 1)
                             x_test = x_test.reshape(x_test.shape[0], x_test.shape[1], 1)
-                            
+
                             # Create and train model
                             model = create_model(
                                 (look_back, 1),
@@ -225,19 +245,19 @@ try:
                                 dropout_rate=dropout_rate,
                                 learning_rate=learning_rate
                             )
-                            
+
                             # Training progress
                             progress_text = "Training in progress. Please wait..."
                             progress_bar = st.progress(0)
-                            
+
                             class ProgressCallback(tf.keras.callbacks.Callback):
                                 def __init__(self):
                                     super().__init__()
-                                
+
                                 def on_epoch_end(self, epoch, logs=None):
                                     progress = (epoch + 1) / epochs
                                     progress_bar.progress(progress)
-                            
+
                             # Training callbacks
                             callbacks = [ProgressCallback()]
                             if early_stopping:
@@ -247,7 +267,7 @@ try:
                                     patience=patience,
                                     restore_best_weights=True
                                 ))
-                            
+
                             # Train model
                             history = model.fit(
                                 x_train, y_train,
@@ -257,21 +277,21 @@ try:
                                 verbose=0,
                                 callbacks=callbacks
                             )
-                            
+
                             # Save model
-                            model.save("stock_model.h5")
-                            st.success("Model trained successfully!")
-                            
+                            model.save(model_path)
+                            st.success(f"Model trained successfully and saved to {model_path}!")
+
                             # Calculate metrics
                             train_pred = model.predict(x_train, verbose=0)
                             test_pred = model.predict(x_test, verbose=0)
-                            
+
                             # Transform predictions
                             train_pred = scaler.inverse_transform(train_pred)
                             test_pred = scaler.inverse_transform(test_pred)
                             y_train_inv = scaler.inverse_transform([y_train])
                             y_test_inv = scaler.inverse_transform([y_test])
-                            
+
                             # Calculate performance metrics
                             train_metrics = {
                                 'MSE': mean_squared_error(y_train_inv.T, train_pred),
@@ -279,20 +299,20 @@ try:
                                 'MAE': mean_absolute_error(y_train_inv.T, train_pred),
                                 'R2 Score': r2_score(y_train_inv.T, train_pred)
                             }
-                            
+
                             test_metrics = {
                                 'MSE': mean_squared_error(y_test_inv.T, test_pred),
                                 'RMSE': np.sqrt(mean_squared_error(y_test_inv.T, test_pred)),
                                 'MAE': mean_absolute_error(y_test_inv.T, test_pred),
                                 'R2 Score': r2_score(y_test_inv.T, test_pred)
                             }
-                            
+
                             # Save metrics
                             model_tracker.save_metrics(test_metrics, model_params, ticker)
-                            
+
                             # Display results in tabs
                             tab1, tab2, tab3 = st.tabs(["Training History", "Performance Metrics", "Predictions vs Actual"])
-                            
+
                             with tab1:
                                 fig, ax = plt.subplots(figsize=(10, 6))
                                 ax.plot(history.history['loss'], label='Training Loss')
@@ -303,7 +323,7 @@ try:
                                 ax.grid(True)
                                 ax.set_title('Training History')
                                 st.pyplot(fig)
-                            
+
                             with tab2:
                                 col1, col2 = st.columns(2)
                                 with col1:
@@ -314,7 +334,7 @@ try:
                                     st.subheader("Testing Metrics")
                                     for metric, value in test_metrics.items():
                                         st.metric(metric, f"{value:.4f}")
-                            
+
                             with tab3:
                                 fig, ax = plt.subplots(figsize=(12, 6))
                                 ax.scatter(y_test_inv.T, test_pred, alpha=0.5)
@@ -326,49 +346,55 @@ try:
                                 ax.set_title('Prediction vs Actual (Test Set)')
                                 ax.grid(True)
                                 st.pyplot(fig)
-                                
+
                         except Exception as e:
                             logger.error(f"Training failed: {str(e)}", exc_info=True)
                             st.error(f"Training failed: {str(e)}")
 
             elif action == "Make Predictions":
                 st.subheader("Future Price Predictions")
-                
+
                 try:
                     # Load model and prepare data
-                    model = load_model("stock_model.h5")
+                    if os.path.exists(model_path):
+                        logger.info(f"Loading model from {model_path}")
+                        model = load_model(model_path)
+                    else:
+                        logger.error(f"Model file not found at {model_path}")
+                        raise FileNotFoundError(f"Model file not found at {model_path}")
+
                     df = retrieve_data(ticker, days=days_of_history)
                     _, _, scaler = preprocess_data(df)
                     sequence_length = model.input_shape[1]
-                    
+
                     # Prediction parameters
                     n_days = st.slider("Number of days to predict", 5, 60, 30)
                     show_confidence = st.checkbox("Show Confidence Interval", value=True)
-                    
+
                     if show_confidence:
                         n_simulations = st.slider("Number of Monte Carlo simulations", 10, 100, 50)
                         confidence_level = st.slider("Confidence Level (%)", 80, 99, 95)
-                    
+
                     # Make predictions
                     with st.spinner("Generating predictions..."):
                         # Prepare input sequence
                         last_sequence = df[-sequence_length:].values
                         last_sequence_scaled = scaler.transform(last_sequence.reshape(-1, 1)).flatten()
-                        
+
                         # Generate predictions
                         predictions = predict_future(model, last_sequence_scaled, n_steps=n_days)
                         predictions = scaler.inverse_transform(predictions.reshape(-1, 1))
-                        
+
                         # Create future dates
                         last_date = pd.to_datetime(df.index[-1])
                         future_dates = pd.date_range(
                             start=last_date + pd.Timedelta(days=1),
                             periods=n_days
                         )
-                        
+
                         # Create predictions DataFrame
                         pred_df = pd.DataFrame(predictions, index=future_dates, columns=['Predicted Price'])
-                        
+
                         if show_confidence:
                             # Generate confidence intervals using Monte Carlo
                             simulations = []
@@ -376,46 +402,46 @@ try:
                                 sim_pred = predict_future(model, last_sequence_scaled, n_steps=n_days)
                                 sim_pred = scaler.inverse_transform(sim_pred.reshape(-1, 1)).flatten()
                                 simulations.append(sim_pred)
-                            
+
                             # Calculate bounds
                             simulations = np.array(simulations)
                             lower_percentile = (100 - confidence_level) / 2
                             upper_percentile = 100 - lower_percentile
-                            
+
                             lower_bound = np.percentile(simulations, lower_percentile, axis=0)
                             upper_bound = np.percentile(simulations, upper_percentile, axis=0)
-                            
+
                             pred_df['Lower Bound'] = lower_bound
                             pred_df['Upper Bound'] = upper_bound
-                        
+
                         # Plot predictions
                         fig, ax = plt.subplots(figsize=(12, 6))
                         ax.plot(df.index[-60:], df[-60:].values, label='Historical Data')
                         ax.plot(future_dates, predictions, 'r--', label='Predictions')
-                        
+
                         if show_confidence:
                             ax.fill_between(future_dates,
                                           lower_bound, upper_bound,
                                           alpha=0.2,
                                           label=f'{confidence_level}% Confidence Interval')
-                        
+
                         ax.set_xlabel('Date')
                         ax.set_ylabel('Price ($)')
                         ax.legend()
                         plt.xticks(rotation=45)
                         plt.grid(True)
                         st.pyplot(fig)
-                        
+
                         # Display predictions table
                         st.subheader("Predicted Prices")
                         st.dataframe(pred_df)
-                        
+
                         # Price change analysis
                         current_price = df[-1]
                         final_pred_price = pred_df['Predicted Price'][-1]
                         price_change = final_pred_price - current_price
                         price_change_pct = (price_change / current_price) * 100
-                        
+
                         col1, col2, col3 = st.columns(3)
                         with col1:
                             st.metric("Current Price", f"${current_price:.2f}")
@@ -425,7 +451,7 @@ try:
                             st.metric("Expected Change",
                                     f"${price_change:.2f}",
                                     f"{price_change_pct:+.2f}%")
-                        
+
                         # Download predictions
                         csv = pred_df.to_csv()
                         st.download_button(
@@ -434,19 +460,19 @@ try:
                             file_name=f'{ticker}_predictions.csv',
                             mime='text/csv'
                         )
-                
+
                 except FileNotFoundError:
                     logger.error("No trained model found. Please train a model first!", exc_info=True)
                     st.error("No trained model found. Please train a model first!")
                 except Exception as e:
                     logger.error(f"Prediction failed: {str(e)}", exc_info=True)
                     st.error(f"Prediction failed: {str(e)}")
-            
+
             elif action == "View Model Performance":
                 st.subheader("Model Performance History")
-                
+
                 metrics_list = model_tracker.get_all_metrics(ticker)
-                
+
                 if not metrics_list:
                     st.warning("No historical metrics found for this stock symbol. Train a model first.")
                 else:
@@ -454,7 +480,7 @@ try:
                     fig = plot_metrics_history(metrics_list)
                     if fig:
                         st.pyplot(fig)
-                    
+
                     # Show detailed metrics table
                     st.subheader("Historical Model Metrics")
                     metrics_df = pd.DataFrame([
@@ -471,7 +497,7 @@ try:
                         }
                         for m in metrics_list
                     ])
-                    
+
                     st.dataframe(metrics_df.sort_values('Timestamp', ascending=False))
 
         except Exception as e:

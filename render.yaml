@@ -3,7 +3,7 @@ services:
     name: stock-price-prediction
     env: python
     region: oregon
-    plan: free
+    plan: free  # Consider upgrading to a paid plan for better performance
     buildCommand: |
       apt-get update -y && \
       apt-get install -y graphviz build-essential && \
@@ -18,6 +18,10 @@ services:
         value: "true"
       - key: STREAMLIT_SERVER_HEADLESS
         value: "true"
+      - key: CACHE_DIR
+        value: "/cache"
+      - key: MODEL_METRICS_DIR
+        value: "/cache/model_metrics"
       # No API keys required for this project
     healthCheckPath: /_stcore/health
     autoDeploy: true
@@ -32,4 +36,4 @@ services:
       minInstances: 1
       maxInstances: 1
       targetMemoryPercent: 80
-    startupTimeout: 300
+    startupTimeout: 600  # Increased timeout to 10 minutes
