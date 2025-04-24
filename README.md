@@ -6,7 +6,7 @@ This project implements a stock price prediction model using Long Short-Term Mem
 
 ## Features
 
-- 🔍 **Real-time Data**: Fetches real-time stock data using yfinance
+- 🔍 **Real-time Data**: Fetches real-time stock data using Tiingo API
 - 📈 **Interactive Training**: Fine-tune model parameters through an intuitive interface
 - 🤖 **Advanced LSTM Architecture**: Multi-layer LSTM with dropout for robust predictions
 - 📊 **Comprehensive Metrics**: Track MSE, RMSE, MAE, and R² scores
@@ -125,4 +125,4 @@ This project is licensed under the MIT License.
 
 - TensorFlow team for the deep learning framework
 - Streamlit team for the web app framework
-- yfinance for providing stock data access
+- Tiingo for providing stock data access
