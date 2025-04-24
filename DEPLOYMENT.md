@@ -121,6 +121,23 @@ The application automatically performs health checks on:
 3. User inputs are sanitized to prevent injection attacks
 4. No sensitive credentials are required
 
+## Continuous Deployment with GitHub Actions
+
+You can set up automatic deployments using GitHub Actions:
+
+1. In your Render dashboard, go to your web service
+2. Click on "Settings"
+3. Scroll down to "Deploy Hooks"
+4. Click "Create Deploy Hook" and copy the generated URL
+5. In your GitHub repository:
+   - Go to "Settings" > "Secrets and variables" > "Actions"
+   - Click "New repository secret"
+   - Name: `RENDER_DEPLOY_HOOK`
+   - Value: Paste the deploy hook URL you copied from Render
+   - Click "Add secret"
+
+Now, whenever you push to the main branch or create a new tag, GitHub Actions will automatically trigger a deployment on Render.
+
 ## Scaling
 
 To handle more users:

@@ -18,6 +18,8 @@ services:
         value: "true"
       - key: STREAMLIT_SERVER_HEADLESS
         value: "true"
+      - key: TIINGO_API_KEY
+        sync: false # This will prompt for the value during deployment
     healthCheckPath: /_stcore/health
     autoDeploy: true
     disk:
