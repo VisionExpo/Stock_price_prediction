@@ -1,10 +1,17 @@
-# Stock Price Prediction Using LSTM
+# 📈 Stock Price Prediction Using LSTM
+![Python](https://img.shields.io/badge/Python-3.8%2B-blue)
+![TensorFlow](https://img.shields.io/badge/TensorFlow-2.12%2B-orange)
+![Streamlit](https://img.shields.io/badge/Streamlit-1.22.0-red)
+![Tiingo](https://img.shields.io/badge/Tiingo-API-green)
+![License](https://img.shields.io/badge/License-MIT-yellow)
+![Render](https://img.shields.io/badge/Render-Deployment-lightgrey)
+![GitHub](https://img.shields.io/badge/GitHub-Repository-lightblue)
 
-This project implements a stock price prediction model using Long Short-Term Memory (LSTM) neural networks. The model is designed to predict future stock prices based on historical data, featuring both a command-line interface and an interactive web application built with Streamlit.
+A powerful stock price prediction system built with LSTM neural networks, featuring real-time data from Tiingo API, interactive model training, and comprehensive performance metrics through a user-friendly Streamlit interface.
 
 ![Stock Price Prediction Demo](docs/images/demo.png)
 
-## Features
+## ✨ Features
 
 - 🔍 **Real-time Data**: Fetches real-time stock data using Tiingo API
 - 📈 **Interactive Training**: Fine-tune model parameters through an intuitive interface
@@ -14,115 +21,190 @@ This project implements a stock price prediction model using Long Short-Term Mem
 - 📉 **Performance Tracking**: Monitor model performance over time
 - 📱 **Responsive UI**: User-friendly interface built with Streamlit
 
-## Project Structure
+## 🚀 Tech Stack
+
+| Technology | Purpose |
+|------------|---------|
+| Python | Core language |
+| TensorFlow | Deep learning framework |
+| Streamlit | Web interface |
+| Tiingo API | Stock data source |
+| Pandas | Data manipulation |
+| Matplotlib | Data visualization |
+| Scikit-learn | Model evaluation |
+| Docker | Containerization |
+| Render | Cloud hosting |
+
+## 🏗️ Architecture
 
 ```
-├── src/                # Source code directory
-│   ├── data_preprocessing.py  # Data preprocessing utilities
-│   ├── data_retrieval.py     # Stock data fetching
-│   ├── model.py             # LSTM model architecture
-│   ├── predict.py          # Prediction functions
-│   └── utils.py           # Helper utilities
-├── tests/              # Unit tests
-├── model_metrics/      # Saved model metrics
-├── docs/              # Documentation and images
-├── research/          # Jupyter notebooks
-├── app.py            # Streamlit web application
-└── requirements.txt  # Required packages
+┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
+│                 │     │                 │     │                 │
+│  Web Interface  │────▶│  Data Fetching  │────▶│  Preprocessing  │
+│   (Streamlit)   │     │   (Tiingo API)  │     │                 │
+│                 │     │                 │     │                 │
+└─────────────────┘     └────────┬────────┘     └────────┬────────┘
+                                │                        │
+                                │                        ▼
+                                │             ┌─────────────────────┐
+                                │             │                     │
+                                │             │   LSTM Training     │
+                                │             │                     │
+                                │             └──────────┬──────────┘
+                                │                        │
+                                │                        ▼
+                                │             ┌─────────────────────┐
+                                │             │                     │
+                                │             │  Model Evaluation   │
+                                │             │                     │
+                                │             └──────────┬──────────┘
+                                ▼                        ▼
+                      ┌─────────────────────────────────────────────┐
+                      │                                             │
+                      │              Price Prediction               │
+                      │                                             │
+                      └─────────────────────────────────────────────┘
 ```
 
-## Model Architecture
+## 🔧 Installation
 
-The LSTM model architecture consists of:
-- Multiple LSTM layers with configurable units (32-256)
-- Dropout layers for regularization (0.0-0.5)
-- Batch normalization for training stability
-- Dense output layer for price prediction
+### Prerequisites
 
-![Model Architecture](docs/images/architecture.png)
+- Python 3.8 or higher
+- Tiingo API key
 
-## Setup and Installation
+### Option 1: Using Setup Scripts (Recommended) 🚀
 
-1. Clone the repository
-2. Install dependencies:
+1. Clone the repository:
+```bash
+git clone https://github.com/VisionExpo/Stock_price_prediction.git
+cd Stock_price_prediction
+```
+
+2. Run the setup script:
+
+For Windows:
+```bash
+setup_env.bat
+```
+
+For macOS/Linux:
+```bash
+chmod +x setup_env.sh
+./setup_env.sh
+```
+
+This script will:
+- 🔨 Create a virtual environment
+- ⚡ Activate the virtual environment
+- 📦 Install dependencies
+- 🔑 Create a .env file from the example if it doesn't exist
+
+3. Edit the .env file and add your API keys:
+- TIINGO_API_KEY: Your Tiingo API key
+
+### Option 2: Manual Setup 🛠️
+
+1. Clone the repository:
+```bash
+git clone https://github.com/VisionExpo/Stock_price_prediction.git
+cd Stock_price_prediction
+```
+
+2. Create and activate a virtual environment:
+
+For Windows:
+```bash
+python -m venv venv
+venv\Scripts\activate
+```
+
+For macOS/Linux:
+```bash
+python -m venv venv
+source venv/bin/activate
+```
+
+3. Install dependencies:
 ```bash
 pip install -r requirements.txt
 ```
-3. Launch the web application:
+
+4. Set up your environment variables:
+```bash
+cp .env.example .env
+```
+Then edit the .env file to add your Tiingo API key.
+
+## 🚀 Usage
+
+### Running the Application
+
 ```bash
 streamlit run app.py
 ```
 
-## Usage
+Then open http://localhost:8501 in your web browser.
 
-### Web Interface
+### 📊 Data Visualization Mode
 
-1. **View Historical Data**
-   - Enter a stock symbol
-   - Adjust the time range
-   - View price history and statistics
+View historical stock data with interactive charts:
+- Price trends
+- Volume analysis
+- Moving averages
+- Technical indicators
 
-2. **Train Model**
-   - Configure basic parameters:
-     - Number of epochs
-     - Batch size
-     - Look-back period
-   - Set advanced parameters:
-     - LSTM units
-     - Dropout rate
-     - Learning rate
-   - Enable/disable early stopping
+### 🧠 Model Training Mode
 
-3. **Make Predictions**
-   - Select prediction timeframe
-   - Enable confidence intervals
-   - View predicted prices and trends
-   - Download prediction results
+Train custom LSTM models with:
+- Adjustable look-back periods
+- Customizable layer architecture
+- Hyperparameter tuning
+- Early stopping options
 
-4. **Track Performance**
-   - Monitor historical metrics
-   - Compare model versions
-   - Analyze performance trends
+### 🔮 Prediction Mode
 
-![Training History](docs/images/training.png)
+Generate and visualize predictions:
+- Short-term forecasts
+- Long-term trends
+- Confidence intervals
+- Downloadable prediction data
 
-## Model Performance
+### 📈 Performance Analysis
 
-The model's performance varies based on the stock and configuration. Here are typical metrics achieved with default settings:
+Evaluate model performance with:
+- Error metrics (MSE, RMSE, MAE)
+- R² scores
+- Prediction vs. actual comparisons
+- Model version tracking
 
-| Metric | Value |
-|--------|-------|
-| MSE    | 10-15 |
-| RMSE   | 3-4   |
-| MAE    | 2-3   |
-| R²     | 0.90+ |
+## 🌐 Deployment
 
-![Metrics History](docs/images/metrics.png)
+This application can be deployed on Render. You can access it at: https://stock-price-prediction.onrender.com/
 
-### Prediction Example
+For detailed deployment instructions, see [DEPLOYMENT.md](DEPLOYMENT.md).
 
-Below is an example of price predictions with confidence intervals:
+## 🧪 Testing
 
-![Prediction Example](docs/images/prediction.png)
+To run tests:
 
-## Deployment
+```bash
+python -m pytest tests/
+```
 
-This application can be deployed on Render.com. See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed instructions.
+## 📝 License
 
-## Contributing
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-1. Fork the repository
-2. Create a feature branch
-3. Commit changes
-4. Push to the branch
-5. Open a pull request
-
-## License
-
-This project is licensed under the MIT License.
-
-## Acknowledgments
+## 🙏 Acknowledgements
 
 - TensorFlow team for the deep learning framework
 - Streamlit team for the web app framework
 - Tiingo for providing stock data access
+- The open-source community for various libraries used in this project
+
+## 📞 Contact
+
+For questions or feedback, please open an issue on GitHub or contact the maintainer at gorulevishal984@gmail.com.
+
+Made with ❤️ by Vishal Gorule
