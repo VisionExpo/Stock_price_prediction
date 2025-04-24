@@ -10,10 +10,15 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && (startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/main')
-    
+
     steps:
     - name: Trigger Render Deploy
       run: |
-        curl -X POST ${{ secrets.RENDER_DEPLOY_HOOK }}
+        if [ -z "$RENDER_DEPLOY_HOOK" ]; then
+          echo "Error: RENDER_DEPLOY_HOOK is not set"
+          exit 1
+        fi
+        echo "Triggering Render deployment..."
+        curl -X POST "$RENDER_DEPLOY_HOOK"
       env:
         RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}

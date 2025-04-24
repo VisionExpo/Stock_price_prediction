@@ -26,7 +26,7 @@ These will be installed automatically through the build script.
 4. Configure the service:
    - Name: `stock-price-prediction` (or any name you prefer)
    - Environment: `Python 3.9`
-   - Build Command: 
+   - Build Command:
      ```
      apt-get update -y && \
      apt-get install -y graphviz build-essential && \
@@ -35,7 +35,9 @@ These will be installed automatically through the build script.
    - Start Command: `streamlit run app.py --server.port=$PORT --server.address=0.0.0.0`
    - Plan: Free (Starter) or Standard based on your needs
 5. Environment Variables:
-   - No additional environment variables required
+   - Add your Tiingo API key:
+     - Key: `TIINGO_API_KEY`
+     - Value: Your Tiingo API key
 6. Click "Create Web Service"
 
 ### Option 2: Deploy using render.yaml
@@ -84,7 +86,7 @@ If you encounter issues:
    - Memory errors: Increase the memory allocation
    - Timeout errors: Adjust the request timeout settings
    - Model loading issues: Clear the service cache
-   - Stock data errors: Check yfinance API status
+   - Stock data errors: Check Tiingo API status
 
 ## Local Testing
 
