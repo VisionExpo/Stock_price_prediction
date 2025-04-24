@@ -5,6 +5,9 @@ import matplotlib.pyplot as plt
 import logging
 import sys
 import os
+import time
+import tempfile
+import filelock
 from tensorflow.keras.models import load_model
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 from src.data_retrieval import retrieve_data
@@ -42,53 +45,77 @@ model_metrics_dir = os.environ.get('MODEL_METRICS_DIR', 'model_metrics')
 os.makedirs(cache_dir, exist_ok=True)
 os.makedirs(model_metrics_dir, exist_ok=True)
 
-# Define model path
+# Define model path as a global variable
+global model_path
 model_path = os.path.join(cache_dir, 'stock_model.h5')
 
 logger.info(f"Using cache directory: {cache_dir}")
 logger.info(f"Using model metrics directory: {model_metrics_dir}")
 logger.info(f"Model will be saved to: {model_path}")
 
+# Import for file locking
+import filelock
+import tempfile
+
 # Check if model exists, if not, create a default model
 if not os.path.exists(model_path):
     logger.info("No trained model found. Creating a default model...")
-    try:
-        # Create a simple default model for AAPL
-        default_ticker = "AAPL"
-        default_days = 365
-        default_look_back = 60
 
-        # Get data
-        df = retrieve_data(default_ticker, days=default_days)
-        train_data, test_data, scaler = preprocess_data(df)
-        x_train, y_train = create_dataset(train_data, time_step=default_look_back)
-        x_test, y_test = create_dataset(test_data, time_step=default_look_back)
+    # Create a lock file to prevent multiple processes from creating the model simultaneously
+    lock_file = os.path.join(tempfile.gettempdir(), "stock_model_creation.lock")
+    logger.info(f"Using lock file: {lock_file}")
 
-        # Reshape for LSTM
-        x_train = x_train.reshape(x_train.shape[0], x_train.shape[1], 1)
-        x_test = x_test.reshape(x_test.shape[0], x_test.shape[1], 1)
+    # Use a file lock to prevent concurrent model creation
+    with filelock.FileLock(lock_file, timeout=60):
+        # Check again after acquiring the lock (another process might have created it)
+        if not os.path.exists(model_path):
+            try:
+                # Create a simple default model for AAPL
+                default_ticker = "AAPL"
+                default_days = 365
+                default_look_back = 60
 
-        # Create and train a simple model
-        model = create_model((default_look_back, 1), lstm_units=50, dropout_rate=0.2, learning_rate=0.001)
+                # Get data
+                df = retrieve_data(default_ticker, days=default_days)
+                train_data, test_data, scaler = preprocess_data(df)
+                x_train, y_train = create_dataset(train_data, time_step=default_look_back)
+                x_test, y_test = create_dataset(test_data, time_step=default_look_back)
 
-        # Train with minimal epochs
-        model.fit(
-            x_train, y_train,
-            validation_data=(x_test, y_test),
-            epochs=10,  # Minimal training
-            batch_size=32,
-            verbose=0
-        )
+                # Reshape for LSTM
+                x_train = x_train.reshape(x_train.shape[0], x_train.shape[1], 1)
+                x_test = x_test.reshape(x_test.shape[0], x_test.shape[1], 1)
 
-        # Save the default model
-        model.save(model_path)
-        logger.info(f"Default model created and saved to {model_path}")
-    except Exception as e:
-        logger.error(f"Failed to create default model: {str(e)}", exc_info=True)
+                # Create and train a simple model
+                model = create_model((default_look_back, 1), lstm_units=50, dropout_rate=0.2, learning_rate=0.001)
+
+                # Train with minimal epochs
+                model.fit(
+                    x_train, y_train,
+                    validation_data=(x_test, y_test),
+                    epochs=10,  # Minimal training
+                    batch_size=32,
+                    verbose=0
+                )
+
+                # Save the default model to a temporary file first, then move it
+                temp_model_path = os.path.join(tempfile.gettempdir(), "temp_stock_model.h5")
+                model.save(temp_model_path)
+
+                # Move the temporary file to the final location
+                import shutil
+                shutil.move(temp_model_path, model_path)
+
+                logger.info(f"Default model created and saved to {model_path}")
+            except Exception as e:
+                logger.error(f"Failed to create default model: {str(e)}", exc_info=True)
+        else:
+            logger.info(f"Model already exists at {model_path}, skipping creation")
 
 try:
     # Health check query parameter handler
-    if "health" in st.query_params:
+    # Check if health parameter exists in URL using experimental_get_query_params
+    query_params = st.experimental_get_query_params() if hasattr(st, 'experimental_get_query_params') else {}
+    if "health" in query_params:
         health_status = check_system_health()
         logger.info(f"Health check status: {health_status}")
         st.json(health_status)
@@ -318,9 +345,31 @@ try:
                                 callbacks=callbacks
                             )
 
-                            # Save model
-                            model.save(model_path)
-                            st.success(f"Model trained successfully and saved to {model_path}!")
+                            # Save model using a safe approach
+                            try:
+                                # Save to a temporary file first
+                                temp_model_path = os.path.join(tempfile.gettempdir(), f"temp_stock_model_{int(time.time())}.h5")
+                                model.save(temp_model_path)
+
+                                # Move the temporary file to the final location
+                                import shutil
+                                shutil.move(temp_model_path, model_path)
+                                st.success(f"Model trained successfully and saved to {model_path}!")
+                            except Exception as save_error:
+                                logger.error(f"Error saving model: {str(save_error)}", exc_info=True)
+                                st.error(f"Error saving model: {str(save_error)}")
+                                # Try an alternative approach if the first one fails
+                                try:
+                                    # Try saving with a unique name
+                                    alt_model_path = os.path.join(cache_dir, f"stock_model_{int(time.time())}.h5")
+                                    model.save(alt_model_path)
+                                    st.success(f"Model trained successfully and saved to {alt_model_path}!")
+                                    # Use the alternative model path for this session
+                                    # We can't use global here since it's already defined
+                                    # Just use the alt_model_path for predictions
+                                except Exception as alt_save_error:
+                                    logger.error(f"Alternative save also failed: {str(alt_save_error)}", exc_info=True)
+                                    st.error(f"Could not save model: {str(alt_save_error)}")
 
                             # Calculate metrics
                             train_pred = model.predict(x_train, verbose=0)
