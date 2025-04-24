@@ -2,12 +2,12 @@
 ![Python](https://img.shields.io/badge/Python-3.8%2B-blue)
 ![TensorFlow](https://img.shields.io/badge/TensorFlow-2.12%2B-orange)
 ![Streamlit](https://img.shields.io/badge/Streamlit-1.22.0-red)
-![Tiingo](https://img.shields.io/badge/Tiingo-API-green)
+![yfinance](https://img.shields.io/badge/yfinance-API-green)
 ![License](https://img.shields.io/badge/License-MIT-yellow)
 ![Render](https://img.shields.io/badge/Render-Deployment-lightgrey)
 ![GitHub](https://img.shields.io/badge/GitHub-Repository-lightblue)
 
-A powerful stock price prediction system built with LSTM neural networks, featuring real-time data from Tiingo API, interactive model training, and comprehensive performance metrics through a user-friendly Streamlit interface.
+A powerful stock price prediction system built with LSTM neural networks, featuring real-time data from yfinance, interactive model training, and comprehensive performance metrics through a user-friendly Streamlit interface.
 
 ![Stock Price Prediction Demo](docs/images/demo.png)
 
@@ -210,4 +210,4 @@ For questions or feedback, please open an issue on GitHub or contact the maintai
 
 Made with ❤️ by [Vishal Gorule](https://github.com/VisionExpo)
 
-</div>             
+</div>
