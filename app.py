@@ -191,8 +191,11 @@ try:
                 with col2:
                     st.subheader("Statistics")
                     stats = df.describe()
+                    # Get the last value properly
+                    current_price = df.iloc[-1] if not df.empty else 0
+
                     metrics = {
-                        "Current Price": df[-1],
+                        "Current Price": current_price,
                         "Average Price": stats['mean'],
                         "Standard Deviation": stats['std'],
                         "Highest Price": stats['max'],
@@ -453,8 +456,16 @@ try:
 
                     # Make predictions
                     with st.spinner("Generating predictions..."):
-                        # Prepare input sequence
-                        last_sequence = df[-sequence_length:].values
+                        # Prepare input sequence - use iloc for safe indexing
+                        if len(df) >= sequence_length:
+                            last_sequence = df.iloc[-sequence_length:].values
+                        else:
+                            st.warning(f"Not enough data points. Using available data and padding with zeros.")
+                            # Pad with zeros if we don't have enough data
+                            available_data = df.iloc[:].values
+                            padding = np.zeros(sequence_length - len(available_data))
+                            last_sequence = np.concatenate([padding, available_data])
+
                         last_sequence_scaled = scaler.transform(last_sequence.reshape(-1, 1)).flatten()
 
                         # Generate predictions
@@ -462,7 +473,11 @@ try:
                         predictions = scaler.inverse_transform(predictions.reshape(-1, 1))
 
                         # Create future dates
-                        last_date = pd.to_datetime(df.index[-1])
+                        if not df.empty:
+                            last_date = pd.to_datetime(df.index[-1])
+                        else:
+                            last_date = pd.Timestamp.now()
+
                         future_dates = pd.date_range(
                             start=last_date + pd.Timedelta(days=1),
                             periods=n_days
@@ -492,7 +507,12 @@ try:
 
                         # Plot predictions
                         fig, ax = plt.subplots(figsize=(12, 6))
-                        ax.plot(df.index[-60:], df[-60:].values, label='Historical Data')
+
+                        # Plot historical data safely
+                        history_points = min(60, len(df))
+                        if history_points > 0:
+                            ax.plot(df.index[-history_points:], df.iloc[-history_points:].values, label='Historical Data')
+
                         ax.plot(future_dates, predictions, 'r--', label='Predictions')
 
                         if show_confidence:
@@ -513,10 +533,10 @@ try:
                         st.dataframe(pred_df)
 
                         # Price change analysis
-                        current_price = df[-1]
-                        final_pred_price = pred_df['Predicted Price'][-1]
+                        current_price = df.iloc[-1] if not df.empty else 0
+                        final_pred_price = pred_df['Predicted Price'].iloc[-1] if not pred_df.empty else 0
                         price_change = final_pred_price - current_price
-                        price_change_pct = (price_change / current_price) * 100
+                        price_change_pct = (price_change / current_price) * 100 if current_price != 0 else 0
 
                         col1, col2, col3 = st.columns(3)
                         with col1:
