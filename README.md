@@ -13,7 +13,7 @@ A powerful stock price prediction system built with LSTM neural networks, featur
 
 ## ✨ Features
 
-- 🔍 **Real-time Data**: Fetches real-time stock data using Tiingo API
+- 🔍 **Real-time Data**: Fetches real-time stock data using yfinance
 - 📈 **Interactive Training**: Fine-tune model parameters through an intuitive interface
 - 🤖 **Advanced LSTM Architecture**: Multi-layer LSTM with dropout for robust predictions
 - 📊 **Comprehensive Metrics**: Track MSE, RMSE, MAE, and R² scores
@@ -28,7 +28,7 @@ A powerful stock price prediction system built with LSTM neural networks, featur
 | Python | Core language |
 | TensorFlow | Deep learning framework |
 | Streamlit | Web interface |
-| Tiingo API | Stock data source |
+| yfinance | Stock data source |
 | Pandas | Data manipulation |
 | Matplotlib | Data visualization |
 | Scikit-learn | Model evaluation |
@@ -41,7 +41,7 @@ A powerful stock price prediction system built with LSTM neural networks, featur
 ┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
 │                 │     │                 │     │                 │
 │  Web Interface  │────▶│  Data Fetching  │────▶│  Preprocessing  │
-│   (Streamlit)   │     │   (Tiingo API)  │     │                 │
+│   (Streamlit)   │     │   (yfinance)    │     │                 │
 │                 │     │                 │     │                 │
 └─────────────────┘     └────────┬────────┘     └────────┬────────┘
                                 │                        │
@@ -71,7 +71,7 @@ A powerful stock price prediction system built with LSTM neural networks, featur
 ### Prerequisites
 
 - Python 3.8 or higher
-- Tiingo API key
+- No API key required (yfinance is used)
 
 ### Option 1: Using Setup Scripts (Recommended) 🚀
 
@@ -100,8 +100,7 @@ This script will:
 - 📦 Install dependencies
 - 🔑 Create a .env file from the example if it doesn't exist
 
-3. Edit the .env file and add your API keys:
-- TIINGO_API_KEY: Your Tiingo API key
+3. No API keys are required for this project
 
 ### Option 2: Manual Setup 🛠️
 
@@ -134,7 +133,7 @@ pip install -r requirements.txt
 ```bash
 cp .env.example .env
 ```
-Then edit the .env file to add your Tiingo API key.
+No API keys are required for this project.
 
 ## 🚀 Usage
 
@@ -200,7 +199,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 - TensorFlow team for the deep learning framework
 - Streamlit team for the web app framework
-- Tiingo for providing stock data access
+- yfinance for providing stock data access
 - The open-source community for various libraries used in this project
 
 ## 📞 Contact

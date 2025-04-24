@@ -35,9 +35,7 @@ These will be installed automatically through the build script.
    - Start Command: `streamlit run app.py --server.port=$PORT --server.address=0.0.0.0`
    - Plan: Free (Starter) or Standard based on your needs
 5. Environment Variables:
-   - Add your Tiingo API key:
-     - Key: `TIINGO_API_KEY`
-     - Value: Your Tiingo API key
+   - No API keys are required for this project
 6. Click "Create Web Service"
 
 ### Option 2: Deploy using render.yaml
