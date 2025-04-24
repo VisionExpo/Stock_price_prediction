@@ -49,6 +49,43 @@ logger.info(f"Using cache directory: {cache_dir}")
 logger.info(f"Using model metrics directory: {model_metrics_dir}")
 logger.info(f"Model will be saved to: {model_path}")
 
+# Check if model exists, if not, create a default model
+if not os.path.exists(model_path):
+    logger.info("No trained model found. Creating a default model...")
+    try:
+        # Create a simple default model for AAPL
+        default_ticker = "AAPL"
+        default_days = 365
+        default_look_back = 60
+
+        # Get data
+        df = retrieve_data(default_ticker, days=default_days)
+        train_data, test_data, scaler = preprocess_data(df)
+        x_train, y_train = create_dataset(train_data, time_step=default_look_back)
+        x_test, y_test = create_dataset(test_data, time_step=default_look_back)
+
+        # Reshape for LSTM
+        x_train = x_train.reshape(x_train.shape[0], x_train.shape[1], 1)
+        x_test = x_test.reshape(x_test.shape[0], x_test.shape[1], 1)
+
+        # Create and train a simple model
+        model = create_model((default_look_back, 1), lstm_units=50, dropout_rate=0.2, learning_rate=0.001)
+
+        # Train with minimal epochs
+        model.fit(
+            x_train, y_train,
+            validation_data=(x_test, y_test),
+            epochs=10,  # Minimal training
+            batch_size=32,
+            verbose=0
+        )
+
+        # Save the default model
+        model.save(model_path)
+        logger.info(f"Default model created and saved to {model_path}")
+    except Exception as e:
+        logger.error(f"Failed to create default model: {str(e)}", exc_info=True)
+
 try:
     # Health check query parameter handler
     if "health" in st.query_params:
@@ -354,18 +391,57 @@ try:
             elif action == "Make Predictions":
                 st.subheader("Future Price Predictions")
 
+                # Check if the model exists but hasn't been trained by the user
+                if os.path.exists(model_path) and not model_tracker.get_all_metrics(ticker):
+                    st.info("Using a pre-trained model. For better results, consider training a custom model with your preferred parameters in the 'Train Model' tab.")
+
                 try:
                     # Load model and prepare data
                     if os.path.exists(model_path):
                         logger.info(f"Loading model from {model_path}")
-                        model = load_model(model_path)
+                        try:
+                            model = load_model(model_path)
+                            logger.info(f"Model loaded successfully from {model_path}")
+                        except Exception as model_error:
+                            logger.error(f"Error loading model: {str(model_error)}")
+                            st.warning("There was an issue with the existing model. Creating a new one...")
+
+                            # Create a new model on the fly
+                            default_look_back = 60
+                            df = retrieve_data(ticker, days=days_of_history)
+                            train_data, test_data, scaler = preprocess_data(df)
+                            x_train, y_train = create_dataset(train_data, time_step=default_look_back)
+                            x_test, y_test = create_dataset(test_data, time_step=default_look_back)
+
+                            # Reshape for LSTM
+                            x_train = x_train.reshape(x_train.shape[0], x_train.shape[1], 1)
+                            x_test = x_test.reshape(x_test.shape[0], x_test.shape[1], 1)
+
+                            # Create and train a simple model
+                            model = create_model((default_look_back, 1), lstm_units=50, dropout_rate=0.2, learning_rate=0.001)
+
+                            with st.spinner("Training a quick model for predictions..."):
+                                # Train with minimal epochs
+                                model.fit(
+                                    x_train, y_train,
+                                    validation_data=(x_test, y_test),
+                                    epochs=10,  # Minimal training
+                                    batch_size=32,
+                                    verbose=0
+                                )
+
+                            # Save the new model
+                            model.save(model_path)
+                            logger.info(f"New model created and saved to {model_path}")
                     else:
                         logger.error(f"Model file not found at {model_path}")
                         raise FileNotFoundError(f"Model file not found at {model_path}")
 
+                    # Get fresh data for predictions
                     df = retrieve_data(ticker, days=days_of_history)
                     _, _, scaler = preprocess_data(df)
                     sequence_length = model.input_shape[1]
+                    logger.info(f"Using sequence length: {sequence_length}")
 
                     # Prediction parameters
                     n_days = st.slider("Number of days to predict", 5, 60, 30)

@@ -32,6 +32,7 @@ services:
     initialDeployHook: |
       mkdir -p /cache/model_metrics
       mkdir -p /cache/cache
+      echo "Initializing application environment..."
     scaling:
       minInstances: 1
       maxInstances: 1
