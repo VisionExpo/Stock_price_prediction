@@ -129,26 +129,62 @@ def check_system_health():
 @lru_cache(maxsize=100)
 def get_cached_stock_data(ticker: str, days: int) -> pd.DataFrame:
     """Get stock data with caching"""
+    import logging
+    logger = logging.getLogger(__name__)
+
+    # Validate inputs
+    if not ticker or not isinstance(ticker, str):
+        raise ValueError("Ticker symbol must be a non-empty string")
+
+    if not isinstance(days, int) or days <= 0:
+        raise ValueError("Days must be a positive integer")
+
     cache_dir = os.environ.get('CACHE_DIR', 'cache')
     cache_file = f'{cache_dir}/{ticker}_{days}.csv'
 
     # Create cache directory if it doesn't exist
     os.makedirs(cache_dir, exist_ok=True)
-    print(f"Using cache file: {cache_file}")
+    logger.info(f"Using cache file: {cache_file}")
 
-    # Check if cached data exists and is recent
-    if os.path.exists(cache_file):
-        cached_data = pd.read_csv(cache_file, index_col=0, parse_dates=True)
-        cache_age = datetime.now() - datetime.fromtimestamp(os.path.getmtime(cache_file))
+    try:
+        # Check if cached data exists and is recent
+        if os.path.exists(cache_file):
+            try:
+                cached_data = pd.read_csv(cache_file, index_col=0, parse_dates=True)
 
-        # Return cached data if it's less than 1 hour old
-        if cache_age < timedelta(hours=1):
-            return cached_data
+                # Check if the cached data is valid
+                if cached_data.empty:
+                    logger.warning(f"Cached data for {ticker} is empty, fetching new data")
+                else:
+                    cache_age = datetime.now() - datetime.fromtimestamp(os.path.getmtime(cache_file))
 
-    # Fetch new data if cache is missing or old
-    from src.data_retrieval import retrieve_data  # Fixed import path
-    df = retrieve_data(ticker, days)
+                    # Return cached data if it's less than 1 hour old
+                    if cache_age < timedelta(hours=1):
+                        logger.info(f"Using cached data for {ticker} (age: {cache_age})")
+                        return cached_data
+                    else:
+                        logger.info(f"Cached data for {ticker} is too old ({cache_age}), fetching new data")
+            except Exception as e:
+                logger.warning(f"Error reading cached data for {ticker}: {str(e)}, fetching new data")
 
-    # Save to cache
-    df.to_csv(cache_file)
-    return df
+        # Fetch new data if cache is missing, old, or invalid
+        from src.data_retrieval import retrieve_data
+        logger.info(f"Fetching new data for {ticker} for the past {days} days")
+        df = retrieve_data(ticker, days)
+
+        # Verify the data is valid
+        if df.empty:
+            raise ValueError(f"No data returned for {ticker}")
+
+        # Save to cache
+        try:
+            df.to_csv(cache_file)
+            logger.info(f"Saved data for {ticker} to cache")
+        except Exception as e:
+            logger.warning(f"Failed to save data to cache: {str(e)}")
+
+        return df
+
+    except Exception as e:
+        logger.error(f"Error in get_cached_stock_data for {ticker}: {str(e)}")
+        raise ValueError(f"Failed to retrieve data for {ticker}: {str(e)}")

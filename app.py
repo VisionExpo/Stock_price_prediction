@@ -577,9 +577,16 @@ try:
                     st.dataframe(metrics_df.sort_values('Timestamp', ascending=False))
 
         except Exception as e:
-            logger.error(f"An error occurred: {str(e)}", exc_info=True)
+            import traceback
+            error_details = traceback.format_exc()
+            logger.error(f"An error occurred: {str(e)}\nDetails: {error_details}")
             st.error(f"An error occurred: {str(e)}")
-            st.info("Please check your input parameters and try again.")
+
+            # Show more detailed error information in an expander
+            with st.expander("Error Details"):
+                st.code(error_details)
+
+            st.info("Please check your input parameters and try again. If the problem persists, try a different stock symbol or time period.")
 
 except Exception as e:
     logger.error(f"Application startup error: {str(e)}", exc_info=True)
