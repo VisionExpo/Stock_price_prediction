@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: GitHub Discussions
+    url: https://github.com/VisionExpo/Stock_price_prediction/discussions
+    about: Please ask and answer questions here.
+  - name: Email Support
+    url: mailto:gorulevishal984@gmail.com
+    about: Please report security vulnerabilities here.
