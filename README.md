@@ -14,7 +14,7 @@ A powerful stock price prediction system built with LSTM neural networks, featur
 ## ✨ Features
 
 - 🔍 **Real-time Data**: Fetches real-time stock data using yfinance
-- 📈 **Interactive Training**: Fine-tune model parameters through an intuitive interface
+- �📈 **Interactive Training**: Fine-tune model parameters through an intuitive interface
 - 🤖 **Advanced LSTM Architecture**: Multi-layer LSTM with dropout for robust predictions
 - 📊 **Comprehensive Metrics**: Track MSE, RMSE, MAE, and R² scores
 - 🎯 **Future Predictions**: Generate price predictions with confidence intervals
