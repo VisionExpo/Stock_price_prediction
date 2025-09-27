@@ -62,9 +62,9 @@ def evaluate_lstm_model(data_dir: Path, model_path: Path, metrics_output_path: P
         logging.error(f"An error occurred during evaluation: {e}")
 
 if __name__ == "__main__":
-    SEQUENCE_DATA_DIR = Path("data/sequences")
-    MODEL_PATH = Path("models/lstm_v1.pt")
-    METRICS_PATH = Path("reports/lstm_metrics.json")
+    SEQUENCE_DATA_DIR = Path("data/sequences_sentiment")
+    MODEL_PATH = Path("models/lstm_v2_sentiment.pt")
+    METRICS_PATH = Path("reports/lstm_v2_sentiment_metrics.json")
     
     evaluate_lstm_model(
         data_dir=SEQUENCE_DATA_DIR, 

@@ -88,8 +88,8 @@ def train_lstm_model(data_dir: Path, model_output_path: Path, epochs: int, learn
 
 if __name__ == "__main__":
     # --- Configuration ---
-    SEQUENCE_DATA_DIR = Path("data/sequences")
-    MODEL_PATH = Path("models/lstm_v1.pt")
+    SEQUENCE_DATA_DIR = Path("data/sequences_sentiment")
+    MODEL_PATH = Path("models/lstm_v2_sentiment.pt")
     EPOCHS = 100
     LEARNING_RATE = 0.001
 

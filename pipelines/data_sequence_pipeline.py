@@ -77,6 +77,6 @@ def prepare_data_for_lstm(data_path: Path, output_dir: Path, sequence_length: in
     logging.info(f"Sequence data and scalers saved to {output_dir}")
 
 if __name__ == "__main__":
-    PROCESSED_DATA_PATH = Path("data/processed/processed_market_data.csv")
-    SEQUENCE_DATA_DIR = Path("data/sequences")
+    PROCESSED_DATA_PATH = Path("data/processed/final_fused_data.csv")
+    SEQUENCE_DATA_DIR = Path("data/sequences_sentiment")
     prepare_data_for_lstm(data_path=PROCESSED_DATA_PATH, output_dir=SEQUENCE_DATA_DIR)
