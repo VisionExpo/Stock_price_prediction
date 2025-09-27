@@ -1,8 +1,0 @@
-pandas
-yfinance
-git+https://github.com/twopirllc/pandas-ta.git
-requests
-transformers
-torch
-scikit-learn
-mlflow
