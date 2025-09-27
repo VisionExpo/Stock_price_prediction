@@ -18,7 +18,7 @@ model_cache = {}
 async def lifespan(app: FastAPI):
     # Load model during startup
     logging.info("Application startup: Loading model...")
-    model_path = Path("model/random_forest_v1.joblib")
+    model_path = Path("models/random_forest_v1.joblib")
     if model_path.exists():
         model_cache["model"] = joblib.load(model_path)
         logging.info("Model loaded successfully.")
