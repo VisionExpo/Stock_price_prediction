@@ -61,7 +61,7 @@ def train_model(data_path: Path, model_output_path: Path):
 if __name__ == "__main__":
     # Define paths
     PROCESSED_DATA_PATH = Path("data/processed/processed_market_data.csv")
-    MODEL_PATH = Path("models/ramdom_forest_v1.joblib")
+    MODEL_PATH = Path("models/random_forest_v1.joblib")
 
     # Execute the training function
     train_model(data_path=PROCESSED_DATA_PATH, model_output_path=MODEL_PATH)
