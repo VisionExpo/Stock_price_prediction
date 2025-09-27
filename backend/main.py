@@ -142,3 +142,26 @@ def predict(request: PredictionRequest):
     except Exception as e:
         logging.error(f"Error during prediction: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/history/{ticker}")
+def get_history(ticker: str):
+    """
+    Retrieves the historical Close price for a given ticker.
+    """
+    data_df = cache.get("data")
+    if data_df is None:
+        raise HTTPException(status_code=500, detail="Data not loaded or is unavailable.")
+    
+    try:
+        # Data is indexed by [Ticker, Date], so we can select the ticker
+        ticker_data = data_df.loc[ticker.upper()]
+        
+        # Prepare data for JSON response
+        history = ticker_data[['Close']].reset_index()
+        return history.to_dict('records')
+        
+    except KeyError:
+        raise HTTPException(status_code=404, detail=f"Ticker '{ticker}' not found in dataset.")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
