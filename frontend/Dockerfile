@@ -11,4 +11,4 @@ COPY . .
 RUN pip install streamlit requests plotly
 
 # Set the default command to run the Streamlit app
-CMD ["streamlit", "run", "app.py"]
+CMD ["streamlit", "run", "app.py", "--server.address=0.0.0.0"]
