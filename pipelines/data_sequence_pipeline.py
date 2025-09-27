@@ -5,61 +5,62 @@ import logging
 from sklearn.preprocessing import MinMaxScaler
 import joblib
 
-# Configure basic logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-def create_sequences(data, sequence_length):
+def create_sequences(X_data, y_data, sequence_length):
     """Converts a time-series dataset into sequences for LSTM training."""
     X, y = [], []
-    for i in range(len(data) - sequence_length):
-        X.append(data[i:(i + sequence_length), :]) # Features
-        y.append(data[i + sequence_length, 3])      # Target is the 'Close' price, index 3
+    for i in range(len(X_data) - sequence_length):
+        X.append(X_data[i:(i + sequence_length)])
+        y.append(y_data[i + sequence_length])
     return np.array(X), np.array(y)
 
 def prepare_data_for_lstm(data_path: Path, output_dir: Path, sequence_length: int = 60, test_start_date: str = "2023-01-01"):
-    """
-    Loads processed data, scales it, creates sequences, and saves them.
-    """
     logging.info(f"Loading data from {data_path}...")
     df = pd.read_csv(data_path, parse_dates=['Date'])
 
-    # --- NEW: Dynamically select the ticker with the most data ---
-    if df.empty:
-        logging.error("The processed data file is empty. Aborting.")
-        return
     main_ticker = df['Ticker'].value_counts().idxmax()
-    logging.info(f"Automatically selected ticker with the most data: {main_ticker}")
-    
+    logging.info(f"Automatically selected ticker: {main_ticker}")
     df_ticker = df[df['Ticker'] == main_ticker].copy().set_index('Date')
     
-    # --- Data Scaling ---
+    # --- UPDATED: Define features and target explicitly ---
+    target_col = 'Close'
     features_to_scale = ['Open', 'High', 'Low', 'Close', 'Volume'] + [col for col in df.columns if 'volume_' in col or 'momentum_' in col]
-    # Ensure all selected features exist in the DataFrame
     features_to_scale = [f for f in features_to_scale if f in df_ticker.columns]
     
     features_df = df_ticker[features_to_scale].dropna()
-    
+    target_series = df_ticker[[target_col]].dropna()
+
+    # Align data by index
+    aligned_index = features_df.index.intersection(target_series.index)
+    features_df = features_df.loc[aligned_index]
+    target_series = target_series.loc[aligned_index]
+
     # Chronological Split
-    train_df = features_df[features_df.index < test_start_date]
-    test_df = features_df[features_df.index >= test_start_date]
+    train_features = features_df[features_df.index < test_start_date]
+    test_features = features_df[features_df.index >= test_start_date]
+    train_target = target_series[target_series.index < test_start_date]
+    test_target = target_series[target_series.index >= test_start_date]
 
-    if train_df.empty or test_df.empty:
-        logging.error(f"Not enough data for ticker {main_ticker} to create a train/test split around {test_start_date}. Aborting.")
-        return
+    # --- UPDATED: Use two separate scalers ---
+    x_scaler = MinMaxScaler(feature_range=(0, 1))
+    y_scaler = MinMaxScaler(feature_range=(0, 1))
 
-    # Scale the data based on the training set ONLY to avoid data leakage
-    scaler = MinMaxScaler(feature_range=(0, 1))
-    training_set_scaled = scaler.fit_transform(train_df)
+    train_features_scaled = x_scaler.fit_transform(train_features)
+    train_target_scaled = y_scaler.fit_transform(train_target)
     
-    # --- Create Training Sequences ---
-    X_train, y_train = create_sequences(training_set_scaled, sequence_length)
+    # --- Create Sequences ---
+    X_train, y_train = create_sequences(train_features_scaled, train_target_scaled, sequence_length)
     
-    # --- Create Testing Sequences ---
-    # We need the tail of the training data to form the initial sequences for the test set
-    total_inputs = pd.concat((train_df, test_df), axis=0)
-    inputs = total_inputs[len(total_inputs) - len(test_df) - sequence_length:].values
-    scaled_inputs = scaler.transform(inputs)
-    X_test, y_test = create_sequences(scaled_inputs, sequence_length)
+    # Create test sequences
+    all_features = pd.concat([train_features, test_features])
+    inputs = all_features[len(all_features) - len(test_features) - sequence_length:].values
+    inputs_scaled = x_scaler.transform(inputs)
+    
+    all_target = pd.concat([train_target, test_target])
+    target_inputs = all_target[len(all_target) - len(test_target) - sequence_length:].values
+    
+    X_test, y_test = create_sequences(inputs_scaled, target_inputs, sequence_length)
     
     logging.info(f"Training sequences shape: X={X_train.shape}, y={y_train.shape}")
     logging.info(f"Testing sequences shape: X={X_test.shape}, y={y_test.shape}")
@@ -70,12 +71,12 @@ def prepare_data_for_lstm(data_path: Path, output_dir: Path, sequence_length: in
     np.save(output_dir / "y_train.npy", y_train)
     np.save(output_dir / "X_test.npy", X_test)
     np.save(output_dir / "y_test.npy", y_test)
-    joblib.dump(scaler, output_dir / "scaler.joblib")
+    joblib.dump(x_scaler, output_dir / "x_scaler.joblib")
+    joblib.dump(y_scaler, output_dir / "y_scaler.joblib")
     
-    logging.info(f"Sequence data and scaler saved to {output_dir}")
+    logging.info(f"Sequence data and scalers saved to {output_dir}")
 
 if __name__ == "__main__":
     PROCESSED_DATA_PATH = Path("data/processed/processed_market_data.csv")
     SEQUENCE_DATA_DIR = Path("data/sequences")
-    
     prepare_data_for_lstm(data_path=PROCESSED_DATA_PATH, output_dir=SEQUENCE_DATA_DIR)
