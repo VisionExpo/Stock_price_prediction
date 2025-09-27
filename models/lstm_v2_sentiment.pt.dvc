@@ -1,0 +1,5 @@
+outs:
+- md5: 2197f73ffa55e47176edd2fce717b0b0
+  size: 542106
+  hash: md5
+  path: lstm_v2_sentiment.pt

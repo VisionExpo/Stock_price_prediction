@@ -1,0 +1,5 @@
+outs:
+- md5: 1ef4fc79c07dd66270f2176505e62e8f
+  size: 182
+  hash: md5
+  path: lstm_v2_sentiment_metrics.json
