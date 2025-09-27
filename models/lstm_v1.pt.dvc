@@ -1,0 +1,5 @@
+outs:
+- md5: 02c0137fe400f677090301a205821a33
+  size: 541972
+  hash: md5
+  path: lstm_v1.pt
