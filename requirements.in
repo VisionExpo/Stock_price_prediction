@@ -1,0 +1,22 @@
+# Core Data Science
+numpy<2.0
+pandas
+scikit-learn
+scipy
+yfinance
+ta
+
+# API & Server
+fastapi
+uvicorn[standard]
+python-multipart
+joblib
+
+# MLOps
+dvc[gdrive]
+mlflow
+
+# Deep Learning
+torch==2.2.0
+torchaudio==2.2.0
+torchvision==0.17.0
