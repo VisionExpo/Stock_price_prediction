@@ -111,7 +111,7 @@ def predict(request: PredictionRequest):
         
         # Find the data for the requested ticker up to the requested date
         ticker_data = data_df.loc[ticker]
-        end_idx = ticker_data.index.get_loc(end_date)
+        end_idx = ticker_data.index.get_loc(end_date, method='pad')
         
         # Get the last `sequence_length` days of data
         start_idx = end_idx - sequence_length + 1

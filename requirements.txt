@@ -1,6 +1,6 @@
 # Core Data Science
 numpy<2.0
-pandas
+pandas>=2.0.0
 scikit-learn
 scipy
 yfinance
