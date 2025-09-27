@@ -1,8 +1,5 @@
 # Use updated slim Python base image with security fixes
-FROM python:3.11-slim
-
-# Upgrade system packages to reduce vulnerabilities
-RUN apt-get update && apt-get upgrade -y && apt-get clean
+FROM python:3.10-slim
 
 # Set the working directory in the container
 WORKDIR /app
