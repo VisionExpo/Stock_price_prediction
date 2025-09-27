@@ -18,5 +18,18 @@ mlflow
 
 # Deep Learning
 torch==2.2.0
-torchaudio==2.2.0
 torchvision==0.17.0
+torchaudio==2.2.0
+transformers
+datasets
+
+# Frontend (Missing from your file)
+streamlit
+plotly
+matplotlib
+seaborn
+
+# Utils (Missing from your file)
+loguru
+python-dotenv
+tqdm
