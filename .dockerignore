@@ -1,0 +1,33 @@
+# Ignore the Python virtual environment
+venv/
+
+# Ignore Python cache files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Ignore IDE and editor folders
+.vscode/
+.idea/
+.project
+.settings/
+
+# Ignore Git files
+.git/
+.gitignore
+
+# Ignore local data, models, and logs that shouldn't be in the image
+data/
+model/
+mlflow_data/
+notebooks/
+reports/
+
+# Ignore Docker and OS files
+Dockerfile
+docker-compose.yml
+.dockerignore
+README.md
+*.env
+*.DS_Store

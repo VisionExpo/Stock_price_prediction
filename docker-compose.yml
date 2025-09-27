@@ -1,0 +1,53 @@
+
+services:
+  # 1. FastAPI Backend Service
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: backend_api
+    ports:
+      - "8000:8000"
+    volumes:
+      # Mount the project code into the container for live updates
+      - .:/app
+    environment:
+      # Points to the MLflow sevice for experiment tracking
+      - MLFLOW_TRACKING_URI=http://mlflow:5000
+    depends_on:
+      - mlflow # Ensure MLflow starts before the backend
+
+  # 2. MLflow Service
+  mlflow:
+    image: python:3.10-slim
+    container_name: mlflow_server
+    command: >
+      bash -c "pip install mlflow boto3 &&
+               mlflow server
+               --host 0.0.0.0
+               --port 5000
+               --default-artifact-root /mlruns"
+    ports:
+      - "5000:5000"
+    volumes:
+      # Persist MLflow data in the local 'mlflow_data' directory
+      - ./mlflow_data:/mlruns
+  
+  # 3. Streamlit Frontend Dashboard
+  frontend:
+    # This requires a Dockerfile in the 'frontend' directory
+    build:
+      context: ./frontend
+    container_name: frontend_dashboard
+    ports:
+      - "8501:8501"
+    environment:
+      # Tells Streamlit where to find the backend API
+      - BACKEND_API_URL=http://backend:8000
+    depends_on:
+      - backend # Ensure backend starts before the frontend
+  
+# Define a default network for all services to communicate
+networks:
+  default:
+    driver: bridge

@@ -1,3 +1,7 @@
+# Tell pip where to find special PyTorch GPU wheels, then fall back to PyPI
+--index-url https://download.pytorch.org/whl/cu121
+--extra-index-url https://pypi.org/simple
+
 # Core
 numpy
 pandas
@@ -5,9 +9,9 @@ scikit-learn
 scipy
 
 # Deep Learning (GPU Optimized)
-torch==2.2.0+cu121 --index-url https://download.pytorch.org/whl/cu121
-torchvision --index-url https://download.pytorch.org/whl/cu121
-torchaudio --index-url https://download.pytorch.org/whl/cu121
+torch==2.2.0
+torchvision==0.17.0
+torchaudio==2.2.0
 transformers
 datasets
 
@@ -24,7 +28,7 @@ requests
 beautifulsoup4
 
 # Feature Engineering
-ta  # technical indicators (RSI, MACD, Bollinger, etc.)
+ta
 
 # Experiment Tracking
 mlflow
@@ -53,4 +57,3 @@ python-dotenv
 # Utils
 tqdm
 loguru
-dotenv
