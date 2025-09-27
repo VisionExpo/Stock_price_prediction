@@ -54,7 +54,7 @@ async def lifespan(app: FastAPI):
         logging.error(f"Data file not found at {data_path}")
 
     # Load LSTM model
-    model_path = Path("models/lstm_v1.pt")
+    model_path = Path("models/lstm_v2_sentiment.pt")
     if model_path.exists():
         # Determine input size from the scaler
         input_size = cache["x_scaler"].n_features_in_
