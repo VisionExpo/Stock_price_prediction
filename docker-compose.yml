@@ -1,4 +1,3 @@
-
 services:
   # 1. FastAPI Backend Service
   backend:
@@ -10,13 +9,18 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      # Mount the project code into the container for live updates
       - .:/app
     environment:
-      # Points to the MLflow sevice for experiment tracking
       - MLFLOW_TRACKING_URI=http://mlflow:5000
     depends_on:
-      - mlflow # Ensure MLflow starts before the backend
+      - mlflow
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
 
   # 2. MLflow Service
   mlflow:
@@ -31,24 +35,21 @@ services:
     ports:
       - "5000:5000"
     volumes:
-      # Persist MLflow data in the local 'mlflow_data' directory
       - ./mlflow_data:/mlruns
   
   # 3. Streamlit Frontend Dashboard
   frontend:
-    # This requires a Dockerfile in the 'frontend' directory
     build:
       context: ./frontend
     container_name: frontend_dashboard
     ports:
       - "8501:8501"
     environment:
-      # Tells Streamlit where to find the backend API
       - BACKEND_API_URL=http://backend:8000
     depends_on:
-      - backend # Ensure backend starts before the frontend
-  
-# Define a default network for all services to communicate
+      - backend
+
+# Defines a default network for all services to communicate
 networks:
   default:
     driver: bridge
