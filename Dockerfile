@@ -10,6 +10,9 @@ RUN apt-get update && \
     apt-get install -y python3.10 python3-pip git && \
     rm  -rf /var/lib/apt/lists/*
 
+# Create a 'python' alias for 'python3'
+RUN ln -s /usr/bin/python3 /usr/bin/python
+
 # Set the working directory in the container
 WORKDIR /app
 
