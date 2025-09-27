@@ -42,7 +42,7 @@ def evaluate_model(data_path: Path, model_path: Path, metrics_output_path: Path)
         test_df.dropna(subset=['target'], inplace=True)
 
         # Define features (X) and target (y)
-        features_to_exclude = ['Date', 'Ticker', 'target']
+        features_to_exclude = ['Date', 'Ticker', 'target', 'Close', 'Adj Close']
         features = [col for col in test_df.columns if col not in features_to_exclude]
 
         X_test = test_df[features]
