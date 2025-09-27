@@ -22,13 +22,14 @@ def train_model(data_path: Path, model_output_path: Path):
 
     # ----- Feature Engineering : Create Target Variable-----
     # We want to predict the next day's 'Close' price
+    logging.info("Creating target variable...")
     df['Target'] = df.groupby('Ticker')['Close'].shift(-1)
 
     # Drop rows where the target is NaN (last day for each ticker)
     df = df.dropna(subset=['Target'])
 
     # Define features (X) and target (y)
-    features_to_exclude = ['Date', 'Ticker', 'Target']
+    features_to_exclude = ['Date', 'Ticker', 'Target', 'Close', 'Adj Close']
     features = [col for col in df.columns if col not in features_to_exclude]
 
     X = df[features]
@@ -61,7 +62,7 @@ def train_model(data_path: Path, model_output_path: Path):
 if __name__ == "__main__":
     # Define paths
     PROCESSED_DATA_PATH = Path("data/processed/processed_market_data.csv")
-    MODEL_PATH = Path("models/random_forest_v1.joblib")
+    MODEL_PATH = Path("models/random_forest_honest_baseline.joblib")
 
     # Execute the training function
     train_model(data_path=PROCESSED_DATA_PATH, model_output_path=MODEL_PATH)

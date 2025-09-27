@@ -80,7 +80,7 @@ def evaluate_model(data_path: Path, model_path: Path, metrics_output_path: Path)
 if __name__ == "__main__":
     # Define paths
     PROCESSED_DATA_PATH = Path("data/processed/processed_market_data.csv")
-    MODEL_PATH = Path("models/random_forest_v1.joblib")
+    MODEL_PATH = Path("models/random_forest_honest_baseline.joblib")
     METRICS_PATH = Path("reports/metrics.json")
 
     # Execute the evaluation function
