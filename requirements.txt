@@ -1,0 +1,55 @@
+# Core
+numpy
+pandas
+scikit-learn
+scipy
+
+# Deep Learning (GPU Optimized)
+torch==2.2.0
+torchvision
+torchaudio
+transformers
+datasets
+
+# Time Series
+statsmodels
+pmdarima
+
+# Data Ingestion
+yfinance
+snscrape
+praw
+newsapi-python
+requests
+beautifulsoup4
+
+# Feature Engineering
+ta  # technical indicators (RSI, MACD, Bollinger, etc.)
+
+# Experiment Tracking
+mlflow
+wandb
+
+# Versioning
+dvc[gdrive]
+
+# Drift Detection & Monitoring
+evidently
+
+# Backend (API)
+fastapi
+uvicorn[standard]
+
+# Frontend (Dashboard)
+streamlit
+plotly
+matplotlib
+seaborn
+
+# Deployment / Infra
+docker
+python-dotenv
+
+# Utils
+tqdm
+loguru
