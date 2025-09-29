@@ -22,7 +22,6 @@ col1, col2 = st.columns(2)
 with col1:
     ticker = st.text_input("Enter a Stock Ticker", "AAPL").upper()
 with col2:
-    # Default to a recent valid date for prediction
     default_date = date(2025, 9, 26) 
     selected_date = st.date_input("Select a Date for Prediction", default_date)
 
@@ -32,8 +31,8 @@ if st.button("Predict"):
         st.error("Please enter a stock ticker.")
     else:
         with st.spinner('Working...'):
-            # --- Call Prediction Endpoint First ---
             predicted_price = None
+            # --- Call Prediction Endpoint First ---
             try:
                 predict_payload = {"ticker": ticker, "date": selected_date.strftime("%Y-%m-%d")}
                 predict_response = requests.post(f"{BASE_API_URL}/predict", json=predict_payload)
@@ -43,34 +42,39 @@ if st.button("Predict"):
                     predicted_price = prediction.get('predicted_price')
                     st.success(f"**Predicted Close Price for {ticker} on {selected_date + timedelta(days=1)}**: ${predicted_price:.2f}")
                 else:
-                    error_details = predict_response.json().get('detail', 'An unknown error occurred.')
+                    error_details = predict_response.json().get('detail', 'An unknown prediction error occurred.')
                     st.error(f"Prediction failed (Code {predict_response.status_code}): {error_details}")
 
             except requests.exceptions.RequestException as e:
-                st.error("Connection Error: Could not connect to the backend API.")
+                st.error("Connection Error: Could not connect to the backend API for prediction.")
 
             # --- Call History Endpoint and Plot ---
             try:
                 history_response = requests.get(f"{BASE_API_URL}/history/{ticker}")
-                history_response.raise_for_status()
+                history_response.raise_for_status() # This will raise an exception for 4xx/5xx errors
                 history_data = history_response.json()
                 
-                history_df = pd.DataFrame(history_data)
-                history_df['Date'] = pd.to_datetime(history_df['Date'])
-                history_df = history_df.set_index('Date')['Close'].tail(90) # Get last 90 days of close price
-
-                # If we have a valid prediction, add it to the data for plotting
-                if predicted_price is not None:
-                    prediction_date = selected_date + timedelta(days=1)
-                    # Use pd.concat to add the new row
-                    prediction_series = pd.Series({pd.to_datetime(prediction_date): predicted_price})
-                    history_df = pd.concat([history_df, prediction_series])
-                    st.subheader(f"Price History and Forecast for {ticker}")
+                if not history_data:
+                    st.warning("No historical data found for this ticker to plot.")
                 else:
-                    st.subheader(f"Recent Price History for {ticker}")
+                    history_df = pd.DataFrame(history_data)
+                    history_df['Date'] = pd.to_datetime(history_df['Date'])
+                    history_df = history_df.set_index('Date')['Close'].tail(90)
 
-                # Display the chart
-                st.line_chart(history_df)
+                    if predicted_price is not None:
+                        prediction_date = selected_date + timedelta(days=1)
+                        prediction_series = pd.Series({pd.to_datetime(prediction_date): predicted_price})
+                        history_df = pd.concat([history_df, prediction_series])
+                        st.subheader(f"Price History and Forecast for {ticker}")
+                    else:
+                        st.subheader(f"Recent Price History for {ticker}")
 
+                    st.line_chart(history_df)
+
+            # --- UPDATED: More detailed error handling for the history endpoint ---
             except requests.exceptions.RequestException as e:
-                st.warning(f"Could not fetch historical data to display chart.")
+                if e.response is not None:
+                    error_details = e.response.json().get('detail', 'Could not fetch historical data.')
+                    st.warning(f"Chart Error (Code {e.response.status_code}): {error_details}")
+                else:
+                    st.warning("Connection Error: Could not connect to the backend API for historical data.")

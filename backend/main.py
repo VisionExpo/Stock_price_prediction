@@ -29,8 +29,8 @@ async def lifespan(app: FastAPI):
         cache["x_scaler"] = joblib.load(Path("data/sequences/x_scaler.joblib"))
         cache["y_scaler"] = joblib.load(Path("data/sequences/y_scaler.joblib"))
         data_path = Path("data/processed/final_fused_data.csv")
-        df = pd.read_csv(data_path, parse_dates=['Date'])
-        cache["data"] = df.set_index(['Ticker', 'Date']).sort_index()
+        # --- UPDATED: Load data as a flat DataFrame without setting the index ---
+        cache["data"] = pd.read_csv(data_path, parse_dates=['Date'])
         model_path = Path("models/lstm_v2_sentiment.pt")
         input_size = cache["x_scaler"].n_features_in_
         model = LSTMModel(input_size=input_size).to(device)
@@ -58,14 +58,24 @@ class PredictionResponse(BaseModel):
 def read_root():
     return {"message": "Welcome to the Stock Market AI API!"}
 
+@app.get("/history/{ticker}")
+def get_history(ticker: str):
+    data_df = cache.get("data")
+    if data_df is None:
+        raise HTTPException(status_code=500, detail="Data not loaded.")
+    
+    # --- UPDATED: Use a robust boolean filter ---
+    ticker_data = data_df[data_df['Ticker'] == ticker.upper()]
+    if ticker_data.empty:
+        raise HTTPException(status_code=404, detail=f"Ticker '{ticker}' not found in dataset.")
+    
+    history = ticker_data[['Date', 'Close']]
+    return history.to_dict('records')
+
 @app.post("/predict", response_model=PredictionResponse)
 def predict(request: PredictionRequest):
-    model = cache.get("model")
-    data_df = cache.get("data")
-    x_scaler = cache.get("x_scaler")
-    y_scaler = cache.get("y_scaler")
-    device = cache.get("device")
-
+    # ... (retrieve model, scalers, etc. from cache) ...
+    model = cache.get("model"); data_df = cache.get("data"); x_scaler = cache.get("x_scaler"); y_scaler = cache.get("y_scaler"); device = cache.get("device")
     if not all([model, data_df is not None, x_scaler, y_scaler]):
         raise HTTPException(status_code=500, detail="Server resources not loaded.")
 
@@ -74,35 +84,28 @@ def predict(request: PredictionRequest):
         end_date = pd.to_datetime(request.date)
         ticker = request.ticker.upper()
         
-        # Select data for the specific ticker
-        ticker_data = data_df.loc[ticker]
-        
-        # --- NEW, CORRECTED LOGIC ---
-        # Slice the data to get all rows up to and including the requested date
-        data_up_to_date = ticker_data[ticker_data.index <= end_date]
-        
+        # --- UPDATED: Use a robust boolean filter ---
+        ticker_data = data_df[data_df['Ticker'] == ticker]
+        if ticker_data.empty:
+            raise HTTPException(status_code=404, detail=f"Ticker '{ticker}' not found in dataset.")
+
+        data_up_to_date = ticker_data[ticker_data['Date'] <= end_date].set_index('Date')
+
         if len(data_up_to_date) < sequence_length:
-            raise HTTPException(status_code=400, detail=f"Not enough historical data to make a prediction. Need at least {sequence_length} days of data prior to {request.date}.")
+            raise HTTPException(status_code=400, detail=f"Not enough historical data to make a prediction.")
         
-        # Take the last `sequence_length` rows for the input sequence
         sequence_to_predict = data_up_to_date.tail(sequence_length)
-        
-        # Select the feature columns and scale them
         feature_cols = x_scaler.feature_names_in_
         sequence_scaled = x_scaler.transform(sequence_to_predict[feature_cols])
         
-        # --- Make Prediction ---
         input_tensor = torch.from_numpy(sequence_scaled).float().unsqueeze(0).to(device)
         with torch.no_grad():
             prediction_scaled = model(input_tensor)
         
         prediction_unscaled = y_scaler.inverse_transform(prediction_scaled.cpu().numpy())[0][0]
         
-        logging.info(f"Prediction for {ticker} on {request.date}: ${prediction_unscaled:.2f}")
         return {"predicted_price": prediction_unscaled}
         
-    except KeyError:
-        raise HTTPException(status_code=404, detail=f"Data not found for ticker '{ticker}'.")
     except Exception as e:
         logging.error(f"Error during prediction: {e}")
         raise HTTPException(status_code=500, detail=str(e))
