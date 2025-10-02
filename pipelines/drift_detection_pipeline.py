@@ -1,8 +1,8 @@
 import pandas as pd
 from pathlib import Path
 import logging
-from evidently.report import Report
-from evidently.metric_preset.data_drift import DataDriftPreset
+from evidently import Report
+from evidently.presets import DataDriftPreset
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -21,7 +21,7 @@ def generate_drift_report(data_path: Path, output_path: Path, reference_end_date
 
     try:
         # Load the dataset
-        df= pd.read_csv(date_path, parse_dates=['Date'])
+        df= pd.read_csv(data_path, parse_dates=['Date'])
         logging.info(f"Loaded data with shape: {df.shape}")
 
 
@@ -46,7 +46,7 @@ def generate_drift_report(data_path: Path, output_path: Path, reference_end_date
 
         # Save the report as an HTML file
         output_path.parent.mkdir(parents=True, exist_ok=True)
-        drift_report.save_html(output_path)
+        drift_report.save(filename=(str(output_path))
 
         logging.info(f"Drift report saved successfully to {output_path}")
 
