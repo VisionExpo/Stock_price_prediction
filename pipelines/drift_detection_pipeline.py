@@ -1,8 +1,8 @@
 import pandas as pd
 from pathlib import Path
 import logging
-from evidently import Report
-from evidently.presets import DataDriftPreset
+from evidently.report import Report
+from evidently.metric_preset import DataDriftPreset
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -49,12 +49,6 @@ def generate_drift_report(data_path: Path, output_path: Path, reference_end_date
         drift_report.save(filename=str(output_path))
 
         logging.info(f"Drift report saved successfully to {output_path}")
-
-
-        drift_report.save_json(str(output_path.with_suffix('.json')))
-        logging.info(f"Drift report JSON saved successfully to {output_path.with_suffix('.json')}")
-
-
 
     except Exception as e:
         logging.error(f"An error occurred during report generation: {e}")
