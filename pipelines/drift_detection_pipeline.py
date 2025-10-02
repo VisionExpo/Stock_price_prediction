@@ -46,7 +46,7 @@ def generate_drift_report(data_path: Path, output_path: Path, reference_end_date
 
         # Save the report as an HTML file
         output_path.parent.mkdir(parents=True, exist_ok=True)
-        drift_report.save_html(str(output_path))
+        drift_report.save(filename=str(output_path))
 
         logging.info(f"Drift report saved successfully to {output_path}")
 
