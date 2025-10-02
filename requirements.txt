@@ -15,7 +15,7 @@ joblib
 # MLOps
 dvc[gdrive]
 mlflow
-evidently
+evidently==0.4.21
 
 # Deep Learning
 torch==2.6.0
