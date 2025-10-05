@@ -1,55 +1,29 @@
-# Python
+# Python virtual environment
+.venv/
+venv/
+
+# Python cache
 __pycache__/
 *.py[cod]
-*$py.class
-*.so
-.Python
-env/
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
 
-# Virtual Environment
-venv/
-ENV/
-
-# IDE
-.idea/
+# IDE and OS files
 .vscode/
-*.swp
-*.swo
+.idea/
+*.DS_Store
 
-# Project specific
-*.h5
-cache/
-model_metrics/*.json
+# Secrets
 .env
 
-# Jupyter Notebook
-.ipynb_checkpoints
-*.ipynb_checkpoints/
-
-# System Files
-.DS_Store
-Thumbs.db
-
-# Docker
-.dockerignore
-
-# MLOps and Data Artifacts
+# --- DVC and MLflow ---
+# Ignore the directories that hold large files and experiment logs
 data/
 models/
 reports/
 mlflow_data/
+
+# IMPORTANT: Now, make an exception. DO NOT ignore the DVC pointer files
+# and the .gitignore files that live inside these directories.
+!/**/.gitignore
+!/data/**/*.dvc
+!/models/**/*.dvc
+!/reports/**/*.dvc
