@@ -26,14 +26,13 @@ services:
 
   # 2. MLflow Service
   mlflow:
-    image: python:3.10-slim
+    image: ghcr.io/mlflow/mlflow:v3.4.0
     container_name: mlflow_server
     command: >
-      bash -c "pip install mlflow boto3 &&
-               mlflow server
-               --host 0.0.0.0
-               --port 5000
-               --default-artifact-root /mlruns"
+      mlflow server
+      --host 0.0.0.0
+      --port 5000
+      --default-artifact-root /mlruns
     ports:
       - "5000:5000"
     volumes:

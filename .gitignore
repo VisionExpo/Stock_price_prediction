@@ -44,3 +44,12 @@ model_metrics/*.json
 # System Files
 .DS_Store
 Thumbs.db
+
+# Docker
+.dockerignore
+
+# MLOps and Data Artifacts
+data/
+models/
+reports/
+mlflow_data/
