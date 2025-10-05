@@ -3,10 +3,9 @@ import requests
 import pandas as pd
 from datetime import date, timedelta
 
-# --- API URLs ---
 BASE_API_URL = "http://backend:8000"
 
-# --- Helper Functions ---
+@st.cache_data(ttl=3600)
 def get_available_tickers():
     try:
         response = requests.get(f"{BASE_API_URL}/tickers")
@@ -17,13 +16,10 @@ def get_available_tickers():
         return []
 
 def color_change(val):
-    """Applies color to the 'Predicted Change (%)' column."""
     color = 'green' if val > 0 else 'red' if val < 0 else 'white'
     return f'color: {color}'
 
-# --- Screener Page ---
 st.set_page_config(page_title="Stock Screener", page_icon="🔍", layout="wide")
-
 st.title("🔍 Stock Screener")
 
 available_tickers = get_available_tickers()
@@ -45,38 +41,33 @@ else:
             
             for i, ticker in enumerate(selected_tickers):
                 progress_bar.progress((i) / len(selected_tickers), text=f"Screening {ticker}...")
+                # ... API call logic ...
                 try:
                     predict_payload = {"ticker": ticker, "date": prediction_date.strftime("%Y-%m-%d")}
                     predict_response = requests.post(f"{BASE_API_URL}/predict", json=predict_payload)
-                    
                     if predict_response.status_code == 200:
                         predicted_price = predict_response.json().get('predicted_price')
-                        
                         history_response = requests.get(f"{BASE_API_URL}/history/{ticker}")
                         history_response.raise_for_status()
                         history_data = history_response.json()
                         last_price = history_data[-1]['Close'] if history_data else 0
-                        
                         change_pct = ((predicted_price - last_price) / last_price) * 100 if last_price > 0 else 0
-                        
-                        results.append({
-                            "Ticker": ticker, "Last Close": last_price, "Predicted Close": predicted_price, "Predicted Change (%)": change_pct
-                        })
+                        results.append({"Ticker": ticker, "Last Close": last_price, "Predicted Close": predicted_price, "Predicted Change (%)": change_pct})
                     else:
                         results.append({"Ticker": ticker, "Last Close": "N/A", "Predicted Close": "Error", "Predicted Change (%)": 0})
-                
                 except requests.exceptions.RequestException:
                     results.append({"Ticker": ticker, "Last Close": "N/A", "Predicted Close": "Error", "Predicted Change (%)": 0})
-
+                
                 if results:
                     results_df = pd.DataFrame(results).sort_values(by="Predicted Change (%)", ascending=False)
+                    # FIXED: Use .map instead of .applymap and width='stretch'
                     placeholder.dataframe(
                         results_df.style.format({
                             "Last Close": "${:.2f}",
                             "Predicted Close": "${:.2f}",
                             "Predicted Change (%)": "{:.2f}%"
-                        }).applymap(color_change, subset=['Predicted Change (%)']),
-                        use_container_width=True
+                        }).map(color_change, subset=['Predicted Change (%)']),
+                        width='stretch'
                     )
 
             progress_bar.progress(1.0, text="Screener finished!")
