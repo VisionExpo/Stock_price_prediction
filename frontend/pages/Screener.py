@@ -7,7 +7,6 @@ from datetime import date, timedelta
 BASE_API_URL = "http://backend:8000"
 
 # --- Helper Functions ---
-@st.cache_data(ttl=3600)
 def get_available_tickers():
     try:
         response = requests.get(f"{BASE_API_URL}/tickers")

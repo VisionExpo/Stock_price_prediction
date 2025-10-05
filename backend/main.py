@@ -9,7 +9,8 @@ import subprocess
 from pydantic import BaseModel
 from contextlib import asynccontextmanager
 import sys
-import torch # <-- FIXED: Added the missing import for PyTorch
+import torch
+from pydantic import BaseModel
 
 # Add project root to path
 project_root = str(Path(__file__).resolve().parents[1])
@@ -58,6 +59,12 @@ class PredictionRequest(BaseModel):
 
 class PredictionResponse(BaseModel):
     predicted_price: float
+
+class BacktestRequest(BaseModel):
+    ticker: str
+    start_date: str
+    end_date: str
+
 
 # --- API Endpoints ---
 @app.get("/")
@@ -128,3 +135,74 @@ def get_drift_report():
         raise HTTPException(status_code=404, detail="Drift report not found. Please generate it first by calling POST /run/drift-detection.")
     
     return FileResponse(report_path)
+
+
+# --- Endpoints for Backtesting Dashboard ---
+@app.post("/backtest")
+def run_backtest(request: BacktestRequest):
+    """
+    Runs a simple trading strategy simulation based on the model's predictions.
+    """
+    model = cache.get("model")
+    data_df = cache.get("data")
+    x_scaler = cache.get("x_scaler")
+    y_scaler = cache.get("y_scaler")
+    device = cache.get("device")
+
+    if not all([model, data_df is not None, x_scaler, y_scaler]):
+        raise HTTPException(status_code=500, detail="Server resources not loaded.")
+
+    try:
+        # Prepare data for the backtest period
+        ticker_data = data_df[data_df['Ticker'] == request.ticker.upper()]
+        backtest_period = ticker_data[
+            (ticker_data['Date'] >= pd.to_datetime(request.start_date)) &
+            (ticker_data['Date'] <= pd.to_datetime(request.end_date))
+        ]
+
+        if len(backtest_period) < 61: # Need 60 days for first prediction + 1 day to trade
+            raise HTTPException(status_code=400, detail="Date range too short for backtesting.")
+
+        # Simple Strategy: If predicted price > current price, buy and hold for 1 day.
+        portfolio_value = 10000.0 # Starting with $10,000
+        equity_curve = []
+        
+        feature_cols = x_scaler.feature_names_in_
+
+        for i in range(60, len(backtest_period)):
+            # Get the sequence of 60 days ending at day `i-1`
+            sequence_df = backtest_period.iloc[i-60:i]
+            current_price = sequence_df.iloc[-1]['Close']
+            
+            # Prepare sequence for prediction
+            sequence_scaled = x_scaler.transform(sequence_df[feature_cols])
+            input_tensor = torch.from_numpy(sequence_scaled).float().unsqueeze(0).to(device)
+            
+            with torch.no_grad():
+                prediction_scaled = model(input_tensor)
+            
+            predicted_price = y_scaler.inverse_transform(prediction_scaled.cpu().numpy())[0][0]
+            
+            # Get the actual next day's price to calculate return
+            actual_next_price = backtest_period.iloc[i]['Close']
+            
+            # Execute strategy
+            if predicted_price > current_price:
+                # Buy at current price, sell at next day's price
+                daily_return = (actual_next_price - current_price) / current_price
+                portfolio_value *= (1 + daily_return)
+
+            equity_curve.append({'Date': backtest_period.iloc[i]['Date'], 'Portfolio Value': portfolio_value})
+            
+        # Calculate final metrics
+        total_return = (portfolio_value / 10000.0 - 1) * 100
+        
+        return {
+            "total_return_pct": total_return,
+            "final_portfolio_value": portfolio_value,
+            "equity_curve": equity_curve
+        }
+
+    except Exception as e:
+        logging.error(f"Error during backtest: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
