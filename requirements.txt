@@ -16,6 +16,7 @@ joblib
 dvc[gdrive]
 mlflow
 evidently==0.4.21
+optuna
 
 # Deep Learning
 torch==2.6.0
