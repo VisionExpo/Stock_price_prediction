@@ -1,33 +1,25 @@
-# Ignore the Python virtual environment
+# Ignore Git and DVC's internal folders
+.git/
+.dvc/
+
+# Ignore Python's virtual environment and cache
+.venv/
 venv/
-
-# Ignore Python cache files
 __pycache__/
-*.pyc
-*.pyo
-*.pyd
 
-# Ignore IDE and editor folders
+# Ignore IDE and OS specific files
 .vscode/
 .idea/
-.project
-.settings/
+*.DS_Store
 
-# Ignore Git files
-.git/
-.gitignore
-
-# Ignore local data, models, and logs that shouldn't be in the image
+# --- CRITICAL: Ignore all large data, models, and logs ---
 data/
-model/
+models/
+reports/
 mlflow_data/
 notebooks/
-reports/
 
-# Ignore Docker and OS files
-Dockerfile
-docker-compose.yml
+# Ignore specific files
+.env
 .dockerignore
-README.md
-*.env
-*.DS_Store
+.gitignore

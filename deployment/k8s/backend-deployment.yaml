@@ -1,0 +1,18 @@
+# This file tells Kubernetes to run a specified number of copies (pods) of our backed
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend-api-deployment
+spec:
+  replicas: 2 # for high availability
+  selector:
+    matchLabels:
+      app: backed-api
+  template:
+    metadata:
+      labels:
+        app: backend-api
+    spec:
+      containers:
+      - name: backend-api-container
+        image:

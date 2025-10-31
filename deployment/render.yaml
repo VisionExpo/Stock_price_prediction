@@ -1,0 +1,56 @@
+# This is a blueprint for deploying the application on Render.
+# You would connect your GitHub repository to Render, and it would use this file.
+
+services:
+  # The MLflow Server
+  - type: web
+    name: mlflow-server
+    env: docker
+    dockerfilePath: ./Dockerfile.mlflow # Requires a dedicated Dockerfile for MLflow
+    dockerContext: .
+    plan: starter # Choose an appropriate instance type
+    envVars:
+      - key: MLFLOW_TRACKING_URI
+        value: "http://0.0.0.0:5000"
+      - key: BACKEND_STORE_URI
+        value: "sqlite:///mlflow.db" # Using a simple sqlite backend for Render
+      - key: ARTIFACT_ROOT
+        value: "/mlruns"
+    disk:
+      name: mlflow-data
+      mountPath: /mlruns
+      sizeGB: 1
+
+  # The FastAPI Backend
+  - type: web
+    name: backend-api
+    env: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    plan: pro # Needs a powerful instance for GPU
+    gpu:
+      type: "T4" # Specify the GPU type, e.g., NVIDIA T4
+    healthCheckPath: /
+    envVars:
+      - key: MLFLOW_TRACKING_URI
+        fromService:
+          type: web
+          name: mlflow-server
+          property: url
+      - key: NEWS_API_KEY
+        sync: false # Set this as a secret in the Render dashboard
+
+  # The Streamlit Frontend
+  - type: web
+    name: frontend-dashboard
+    env: docker
+    dockerfilePath: ./frontend/Dockerfile
+    dockerContext: ./frontend
+    plan: starter
+    healthCheckPath: /
+    envVars:
+      - key: BACKEND_API_URL
+        fromService:
+          type: web
+          name: backend-api
+          property: url
