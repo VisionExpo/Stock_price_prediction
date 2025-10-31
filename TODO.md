@@ -16,8 +16,8 @@
 - [x] Fix progress bar increment in frontend screener
 
 ## Testing and Validation
-- [ ] Test backend startup (model loads without error)
-- [ ] Test prediction/screener endpoints with dynamic dates
-- [ ] Test drift detection and report generation
-- [ ] Test backtest with short date ranges
-- [ ] Run full docker-compose to verify integration
+- [x] Test backend startup (model loads without error)
+- [x] Test prediction/screener endpoints with dynamic dates
+- [x] Test drift detection and report generation
+- [x] Test backtest with short date ranges
+- [x] Run full docker-compose to verify integration
