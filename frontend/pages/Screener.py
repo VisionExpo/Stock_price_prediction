@@ -27,8 +27,8 @@ if not available_tickers:
     st.warning("Could not load tickers from the API.")
 else:
     selected_tickers = st.multiselect("Select stocks to screen", options=available_tickers, default=available_tickers[:4])
-    
-    prediction_date = date(2025, 9, 26)
+
+    prediction_date = st.date_input("Select a Date for Prediction", date.today())
     st.info(f"The screener will predict the closing price for **{prediction_date + timedelta(days=1)}** based on data up to **{prediction_date}**.")
 
     if st.button("Run Screener"):
@@ -40,7 +40,7 @@ else:
             progress_bar = st.progress(0, text="Starting Screener...")
             
             for i, ticker in enumerate(selected_tickers):
-                progress_bar.progress((i) / len(selected_tickers), text=f"Screening {ticker}...")
+                progress_bar.progress((i + 1) / len(selected_tickers), text=f"Screening {ticker}...")
                 # ... API call logic ...
                 try:
                     predict_payload = {"ticker": ticker, "date": prediction_date.strftime("%Y-%m-%d")}
@@ -50,7 +50,9 @@ else:
                         history_response = requests.get(f"{BASE_API_URL}/history/{ticker}")
                         history_response.raise_for_status()
                         history_data = history_response.json()
-                        last_price = history_data[-1]['Close'] if history_data else 0
+                        # Filter history data to get last price before prediction date
+                        filtered_history = [d for d in history_data if pd.to_datetime(d['Date']) < pd.to_datetime(prediction_date)]
+                        last_price = filtered_history[-1]['Close'] if filtered_history else 0
                         change_pct = ((predicted_price - last_price) / last_price) * 100 if last_price > 0 else 0
                         results.append({"Ticker": ticker, "Last Close": last_price, "Predicted Close": predicted_price, "Predicted Change (%)": change_pct})
                     else:

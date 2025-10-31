@@ -18,8 +18,6 @@ def run_screener(request: ScreenerRequest):
     Runs the prediction model on a list of tickers for a given date.
     """
     results = []
-    # Use today's date for prediction
-    prediction_date = date(2025, 9, 26)
 
     for ticker in request.tickers:
         try:

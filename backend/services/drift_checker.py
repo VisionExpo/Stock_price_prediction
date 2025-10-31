@@ -36,7 +36,11 @@ def check_for_drift(data_path: Path, reference_end_date: str, drift_report_path:
         report_dict = drift_report.as_dict()
         
         # We access the summary provided by the DataDriftPreset
-        drift_detected = report_dict['metrics'][0]['result']['data_drift']['data']['metrics']['dataset_drift']
+        drift_detected = False
+        if 'metrics' in report_dict and len(report_dict['metrics']) > 0:
+            drift_detected = report_dict['metrics'][0]['result'].get('dataset_drift', False)
+        else:
+            logging.warning("Could not parse drift report structure.")
         
         if drift_detected:
             logging.warning("Data drift DETECTED!")

@@ -33,7 +33,7 @@ def load_resources():
         df = pd.read_csv(data_path, parse_dates=['Date'])
         cache["data"] = df
         
-        model_path = Path("models/transformer_champion.pt")
+        model_path = Path("models/transformer_v1.pt")
         input_size = cache["x_scaler"].n_features_in_
         
         model = TransformerModel(input_size=input_size).to(device)

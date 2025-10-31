@@ -23,7 +23,7 @@ def run_backtest(request: BacktestRequest):
     try:
         ticker_data = data_df[data_df['Ticker'] == request.ticker.upper()]
         backtest_period = ticker_data[(ticker_data['Date'] >= pd.to_datetime(request.start_date)) & (ticker_data['Date'] <= pd.to_datetime(request.end_date))]
-        if len(backtest_period) < 61: raise HTTPException(status_code=400, detail="Date range too short.")
+        if len(backtest_period) < 61: raise HTTPException(status_code=400, detail="Date range too short. Need at least 61 days for backtesting.")
         portfolio_value = 10000.0; equity_curve = []; feature_cols = x_scaler.feature_names_in_
         for i in range(60, len(backtest_period)):
             sequence_df = backtest_period.iloc[i-60:i]

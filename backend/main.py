@@ -4,6 +4,8 @@ from backend.services import predictor
 from backend.routers import predict, backtest, drift, screener
 import logging
 
+logging.basicConfig(level=logging.INFO)
+
 # --- Lifespan Events ---
 @asynccontextmanager
 async def lifespan(app: FastAPI):

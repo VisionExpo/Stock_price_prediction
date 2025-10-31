@@ -14,7 +14,7 @@ col1, col2 = st.columns(2)
 with col1:
     ticker = st.text_input("Enter a Stock Ticker", "AAPL").upper()
 with col2:
-    default_date = date(2025, 9, 26) 
+    default_date = date.today()
     selected_date = st.date_input("Select a Date for Prediction", default_date)
 
 if st.button("Predict"):
